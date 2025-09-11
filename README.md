@@ -5,10 +5,8 @@
 Brethren Ace D. de la Gente  
 Sophe Mae C. Dela Cruz
 
-## Language Overview
-
-[Provide a brief description of your programming language - what it's designed for, its main characteristics]  
-
+## Language Overview  
+Aevum is a high-level, general purpose, object-oriented programming (OOP) language which is used for desktop, mobile, and web applications. Aevum, as an object-oriented programming language, is a fast, simpler, and secured programming language which helps beginner programmers to explore OOP and its principles.
 
 ## Keywords
 
@@ -131,6 +129,5 @@ for (x in list) {
 }
 ```
 
-## Design Rationale
-
-[Explain the reasoning behind your design choices]
+## Design Rationale  
+The creators of Aevum decided to create a high-level, object oriented programming language which allows programmers to explore object-oriented programming while making it less complex and for readability and maintainability purposes.
