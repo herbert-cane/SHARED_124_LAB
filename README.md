@@ -5,10 +5,11 @@
 Brethren Ace D. de la Gente  
 Sophe Mae C. Dela Cruz
 
-## Language Overview  
-Aevum is a high-level, general purpose, object-oriented programming (OOP) language which is used for desktop, mobile, and web applications. Aevum, as an object-oriented programming language, is a fast, simpler, and secured programming language which helps beginner programmers to explore OOP and its principles.
+## Language Overview
+Aevum is a high-level, general-purpose programming language designed specifically for creating interactive text-based RPGs. It allows developers to easily create branching stories, dialogue systems, and game flow mechanics using simple and intuitive constructs. 
 
-## Keywords
+Aevum simplifies the learning process for beginners by offering game-specific keywords like ```speak```, ```choice```, ```option```, ```action```, and ```endgame```, making it easier to focus on story development and interactive gameplay. Aevum's primary focus is on text processing and branching logic, allowing developers to design compelling narrative-driven games while learning foundational programming principles.
+## Built-in Keywords
 
 * ```and``` - a logical operator that returns _true_ if both statements are _true_. Otherwise, returns _false_.
 * ```or``` - a logical operator that returns *true* if at least one of the statements is *true*
@@ -28,35 +29,68 @@ Aevum is a high-level, general purpose, object-oriented programming (OOP) langua
 * ```this``` - a reference variable that refers to the current object in the constructor or a method.
 * ```var``` - used to define a variable inside a function or code block.
 
+## Dialogue and Character Keywords
+
+* ```speak``` - display dialogue or messages from characters.
+* ```character``` - definesa game scene where actions and objects exist.
+* ```say``` - used for character dialogue.
+
+## Choices and Branching
+* ```choice``` - present a choice to the player.
+* ```option``` - option for the player to choose.
+* ```spawn``` - spawn a new game object into the scene.
+
+## Game Flow
+* ```start``` - start the game or a new scene.
+* ```continue``` - continue the game or move to the next scene.
+* ```restart``` - restart the game from the beginning or a checkpoint.
+* ```endgame``` - signify the end of the game or story.
+
+## Actions and Triggers 
+* ```action``` - represent a specific action or event in the game (like fighting, exploring, etc.).
+* ```trigger``` - trigger an event or consequence in the game.
+* ```win, lose``` - represent outcomes in the game.
+
+## Inventory [OPTIONAL]
+* ```inventory``` - list or view items in the inventory.
+* ```item``` - represent an item in the inventory.
+* ```add``` - add an item to the inventory.
+* ```use``` - use an item in the game.
+
+## Stats [OPTIONAL]
+* ```HP``` - define the health of a character.
+* ```ATK``` - define the attack points of a character.
+* ```DEF``` - define the defense points of a character.
+
 ## Operators
 
 ### Arithmetic Operators
 
-| Operators | Name |
-| :---: | :---: |
-| + | Addition |
-| - | Subtraction |
-| * | Multiplication |
-| / | Division |
+| Operators |      Name      |
+|:---------:|:--------------:|
+|     +     |    Addition    |
+|     -     |  Subtraction   |
+|     *     | Multiplication |
+|     /     |    Division    |
 
 ### Comparison Operators
 
-| Operators | Name | Example | 
-| :---: | :---: | :---: |
-| == | Equal to | x == y |
-| != | Not equal | x != y |
-| > | Greater than | x > y |
-| < | Less than | x < y |
-| >= | Greater than or equal | x >= y |
-| <= | Less than or equal | x <= y |
+| Operators |         Name          | Example | 
+|:---------:|:---------------------:|:-------:|
+|    ==     |       Equal to        | x == y  |
+|    !=     |       Not equal       | x != y  |
+|     >     |     Greater than      |  x > y  |
+|     <     |       Less than       |  x < y  |
+|    >=     | Greater than or equal | x >= y  |
+|    <=     |  Less than or equal   | x <= y  |
 
 ### Logical Operators
 
-| Operators | Name | Description | 
-| :---: | :---: | :--- |
-| and | Logical AND | Returns *true* if both statements are *true*. Otherwise, *false* |
-| or | Logical OR | Returns *true* if at least one of the statements is *true* |
-| nil | Logical NOT | Returns *true* if the statement is *false* and vice versa |
+| Operators |    Name     | Description                                                      | 
+|:---------:|:-----------:|:-----------------------------------------------------------------|
+|    and    | Logical AND | Returns *true* if both statements are *true*. Otherwise, *false* |
+|    or     | Logical OR  | Returns *true* if at least one of the statements is *true*       |
+|    nil    | Logical NOT | Returns *true* if the statement is *false* and vice versa        |
 
 ## Literals
 
@@ -129,5 +163,57 @@ for (x in list) {
 }
 ```
 
+```
+start "The Adventure Begins"
+
+speak "You are standing in front of a dark forest. What will you do?"
+
+choice {
+    option "Enter the forest" -> {
+        speak "You step into the forest, the trees whispering around you."
+        action "Fight"
+    }
+    option "Stay outside" -> {
+        speak "You decide to stay outside, wondering what lies within."
+        action "Explore"
+    }
+}
+
+action "Fight" -> {
+    speak "A wild beast appears! Do you want to fight it?"
+    choice {
+        option "Fight" -> {
+            attack 20
+            speak "You defeat the beast!"
+            endgame "Victory!"
+        }
+        option "Run" -> {
+            speak "You run away safely."
+            continue "The adventure continues."
+        }
+    }
+}
+
+action "Explore" -> {
+    speak "You explore the surroundings and find a treasure chest!"
+    choice {
+        option "Open the chest" -> {
+            item "Sword"
+            speak "You find a powerful sword!"
+            continue "The adventure continues."
+        }
+        option "Leave it" -> {
+            speak "You decide to leave the chest untouched."
+            continue "The adventure continues."
+        }
+    }
+}
+
+endgame "Game Over"
+
+```
+
 ## Design Rationale  
-The creators of Aevum decided to create a high-level, object oriented programming language which allows programmers to explore object-oriented programming while making it less complex and for readability and maintainability purposes.
+Aevum is a beginner-friendly language made for creating interactive text-based RPGs. It focuses on simple commands for dialogue, choices, and branching stories, letting you dive straight into building your game while learning programming basics. 
+
+The syntax is easy to understand, and while it's simple, it still allows for cool features like inventories and character stats. Aevum makes it easy to design immersive narratives without getting bogged down by complex mechanics.The creators of Aevum decided to create a high-level, object-oriented programming language with game development in mind. This allows programmers to easily integrate complex game mechanics such as movement, animations, collision detection, and physics while learning object-oriented programming principles. Aevum is designed to be beginner-friendly, while maintaining powerful features that can be used to create full-fledged games.

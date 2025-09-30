@@ -1,4 +1,4 @@
-import java.util.Scanner as InputScanner
+/* import java.util.Scanner as InputScanner
 
 enum class TokenType {
     // Single-character tokens
@@ -12,11 +12,15 @@ enum class TokenType {
     // Literals
     IDENTIFIER, STRING, NUMBER,
 
-    // Keywords for text RPG
-    START, SPEAK, CHOICE, OPTION, ACTION, ENDGAME, CONTINUE, IF, ELSE, VAR, PRINT, RESTART, INVENTORY,
+    // Keywords
+    AND, CLASS, ELSE, FALSE, FUN, FOR, IF, NIL, OR,
+    PRINT, RETURN, SUPER, THIS, TRUE, VAR, WHILE,
 
-    // Special token
-    EOF
+    // Game-specific keywords
+    SPRITE, SCENE, ANIM, COLLIDE, MOVE, SPAWN, JUMP, GRAVITY, PHYSICS,
+
+    // Special & Error tokens
+    EOF, COMMENT
 }
 
 fun tokenTypeToString(type: TokenType) = when (type) {
@@ -42,20 +46,35 @@ fun tokenTypeToString(type: TokenType) = when (type) {
     TokenType.IDENTIFIER -> "IDENTIFIER"
     TokenType.STRING -> "STRING"
     TokenType.NUMBER -> "NUMBER"
-    TokenType.START -> "START"
-    TokenType.SPEAK -> "SPEAK"
-    TokenType.CHOICE -> "CHOICE"
-    TokenType.OPTION -> "OPTION"
-    TokenType.ACTION -> "ACTION"
-    TokenType.ENDGAME -> "ENDGAME"
-    TokenType.CONTINUE -> "CONTINUE"
-    TokenType.IF -> "IF"
+    TokenType.AND -> "AND"
+    TokenType.CLASS -> "CLASS"
     TokenType.ELSE -> "ELSE"
-    TokenType.VAR -> "VAR"
+    TokenType.FALSE -> "FALSE"
+    TokenType.FUN -> "FUN"
+    TokenType.FOR -> "FOR"
+    TokenType.IF -> "IF"
+    TokenType.NIL -> "NIL"
+    TokenType.OR -> "OR"
     TokenType.PRINT -> "PRINT"
-    TokenType.RESTART -> "RESTART"
-    TokenType.INVENTORY -> "INVENTORY"
-    else -> "EOF"
+    TokenType.RETURN -> "RETURN"
+    TokenType.SUPER -> "SUPER"
+    TokenType.THIS -> "THIS"
+    TokenType.TRUE -> "TRUE"
+    TokenType.VAR -> "VAR"
+    TokenType.WHILE -> "WHILE"
+    TokenType.EOF -> "EOF"
+    TokenType.COMMENT -> "COMMENT"
+
+    //AEVUM KEYWORDS
+    TokenType.SPRITE -> "SPRITE"
+    TokenType.SCENE -> "SCENE"
+    TokenType.ANIM -> "ANIMATION"
+    TokenType.COLLIDE -> "COLLISION"
+    TokenType.MOVE -> "MOVEMENT"
+    TokenType.SPAWN -> "SPAWN"
+    TokenType.JUMP -> "JUMP"
+    TokenType.GRAVITY -> "GRAVITY"
+    TokenType.PHYSICS -> "PHYSICS"
 }
 
 data class Token(
@@ -77,10 +96,18 @@ data class Token(
 
 object AevumScanner {
     private val keywords = mapOf(
-        "start" to TokenType.START, "speak" to TokenType.SPEAK, "choice" to TokenType.CHOICE,
-        "option" to TokenType.OPTION, "action" to TokenType.ACTION, "endgame" to TokenType.ENDGAME,
-        "continue" to TokenType.CONTINUE, "if" to TokenType.IF, "else" to TokenType.ELSE,
-        "var" to TokenType.VAR, "print" to TokenType.PRINT, "restart" to TokenType.RESTART, "inventory" to TokenType.INVENTORY
+        "and" to TokenType.AND, "class" to TokenType.CLASS, "else" to TokenType.ELSE,
+        "false" to TokenType.FALSE, "fun" to TokenType.FUN, "for" to TokenType.FOR,
+        "if" to TokenType.IF, "nil" to TokenType.NIL, "or" to TokenType.OR,
+        "print" to TokenType.PRINT, "return" to TokenType.RETURN, "super" to TokenType.SUPER,
+        "this" to TokenType.THIS, "true" to TokenType.TRUE, "var" to TokenType.VAR,
+        "while" to TokenType.WHILE,
+
+
+        // AEVUM-KEYWORDS
+        "sprite" to TokenType.SPRITE, "scene" to TokenType.SCENE, "anim" to TokenType.ANIM,
+        "collide" to TokenType.COLLIDE, "move" to TokenType.MOVE, "spawn" to TokenType.SPAWN,
+        "jump" to TokenType.JUMP, "gravity" to TokenType.GRAVITY, "physics" to TokenType.PHYSICS
     )
 
     private val singleCharTokens = mapOf(
@@ -94,13 +121,8 @@ object AevumScanner {
         '!' to "=", '=' to "=", '<' to "=", '>' to "="
     )
 
-    private fun emitToken(type: TokenType, lexeme: String, literal: Any? = null, line: Int) {
+    private fun emitToken(type: TokenType, lexeme: String, literal: Any? = null, line: Int) =
         println(Token(type, lexeme, literal, line))
-    }
-
-    private fun emitError(message: String, line: Int) {
-        println("ERROR at line $line: $message")
-    }
 
     fun scanLine(lineText: String, lineNumber: Int) {
         var current = 0
@@ -140,6 +162,13 @@ object AevumScanner {
                 }
             }
 
+            // Handle remaining operators
+            when (char) {
+                '=' -> { emitToken(TokenType.EQUAL, "=", null, lineNumber); current++; continue }
+                '<' -> { emitToken(TokenType.LESS, "<", null, lineNumber); current++; continue }
+                '>' -> { emitToken(TokenType.GREATER, ">", null, lineNumber); current++; continue }
+            }
+
             // Handle comments
             if (char == '/') {
                 when {
@@ -170,7 +199,9 @@ object AevumScanner {
                 while (current < length && lineText[current] != '"') current++
 
                 if (current >= length) {
-                    emitError("Unterminated string literal", lineNumber)
+                    // Unterminated string - print error message
+                    val content = lineText.substring(start)
+                    println("ERROR: Unterminated string literal at line $lineNumber: \"$content")
                 } else {
                     val content = lineText.substring(start, current)
                     emitToken(TokenType.STRING, "\"$content\"", content, lineNumber)
@@ -179,16 +210,53 @@ object AevumScanner {
                 continue
             }
 
-            // Handle numbers
+            // Handle numbers - scan multiple numbers separated by dots
             if (char.isDigit() || (char == '.' && current + 1 < length && lineText[current + 1].isDigit())) {
                 val start = current
-                while (current < length && (lineText[current].isDigit() || lineText[current] == '.')) current++
-                val numberStr = lineText.substring(start, current)
-                if (numberStr.count { it == '.' } > 1) {
-                    emitError("Invalid number format: $numberStr", lineNumber)
-                } else {
-                    emitToken(TokenType.NUMBER, numberStr, numberStr.toDouble(), lineNumber)
+
+                // Scan the entire number sequence including multiple dots
+                while (current < length) {
+                    val c = lineText[current]
+                    if (c.isDigit() || c == '.') {
+                        current++
+                    } else {
+                        break
+                    }
                 }
+
+                // Process the scanned sequence to extract individual numbers
+                var scanPos = start
+                while (scanPos < current) {
+                    // Find the next valid number (digits followed by optional decimal and more digits)
+                    var numberEnd = scanPos
+                    var decimalFound = false
+
+                    while (numberEnd < current) {
+                        val c = lineText[numberEnd]
+                        if (c.isDigit()) {
+                            numberEnd++
+                        } else if (c == '.' && !decimalFound && numberEnd + 1 < current && lineText[numberEnd + 1].isDigit()) {
+                            decimalFound = true
+                            numberEnd++
+                        } else {
+                            break
+                        }
+                    }
+
+                    // Emit the number token if we found a valid number
+                    if (numberEnd > scanPos) {
+                        val numStr = lineText.substring(scanPos, numberEnd)
+                        emitToken(TokenType.NUMBER, numStr, numStr.toDouble(), lineNumber)
+                        scanPos = numberEnd
+                    }
+
+                    // Skip any extra dots between numbers
+                    while (scanPos < current && lineText[scanPos] == '.') {
+                        scanPos++
+                    }
+                }
+
+                current = scanPos
                 continue
             }
 
@@ -214,7 +282,7 @@ object AevumScanner {
 
 fun main() {
     val inputScanner = InputScanner(System.`in`)
-    val lineNumber = 1
+    var lineNumber = 1
 
     println("Welcome to Aevum REPL. Type your code below:")
     println("Type 'exit' to quit.")
@@ -223,8 +291,8 @@ fun main() {
         print("> ")
         val line = inputScanner.nextLine().trim()
         if (line.equals("exit", ignoreCase = true)) break
-        AevumScanner.scanLine(line, lineNumber)
+        AevumScanner.scanLine(line, lineNumber++)
     }
 
     println("Goodbye!")
-}
+}*/
