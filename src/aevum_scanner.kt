@@ -6,10 +6,8 @@ enum class TokenType {
     COMMA, DOT, MINUS, PLUS, SEMICOLON, SLASH, STAR,
 
     // One or two character tokens
-    BANG, BANG_EQUAL,
-    EQUAL, EQUAL_EQUAL,
-    GREATER, GREATER_EQUAL,
-    LESS, LESS_EQUAL,
+    NOT, NOT_EQUAL, EQUAL, EQUAL_EQUAL,
+    GREATER, GREATER_EQUAL, LESS, LESS_EQUAL,
 
     // Literals
     IDENTIFIER, STRING, NUMBER,
@@ -18,65 +16,73 @@ enum class TokenType {
     AND, CLASS, ELSE, FALSE, FUN, FOR, IF, NIL, OR,
     PRINT, RETURN, SUPER, THIS, TRUE, VAR, WHILE,
 
-    // Special
-    EOF, COMMENT,
+    // Game-specific keywords
+    SPRITE, SCENE, ANIM, COLLIDE, MOVE, SPAWN, JUMP, GRAVITY, PHYSICS,
 
-    // Error tokens
-    UNTERMINATED_STRING, INVALID_NUMBER
+    // Special & Error tokens
+    EOF, COMMENT
 }
 
-fun tokenTypeToString(type: TokenType): String {
-    return when (type) {
-        TokenType.LEFT_PAREN -> "LEFT_PAREN"
-        TokenType.RIGHT_PAREN -> "RIGHT_PAREN"
-        TokenType.LEFT_BRACE -> "LEFT_BRACE"
-        TokenType.RIGHT_BRACE -> "RIGHT_BRACE"
-        TokenType.COMMA -> "COMMA"
-        TokenType.DOT -> "DOT"
-        TokenType.MINUS -> "MINUS"
-        TokenType.PLUS -> "PLUS"
-        TokenType.SEMICOLON -> "SEMICOLON"
-        TokenType.SLASH -> "SLASH"
-        TokenType.STAR -> "STAR"
-        TokenType.BANG -> "BANG"
-        TokenType.BANG_EQUAL -> "BANG_EQUAL"
-        TokenType.EQUAL -> "EQUAL"
-        TokenType.EQUAL_EQUAL -> "EQUAL_EQUAL"
-        TokenType.GREATER -> "GREATER"
-        TokenType.GREATER_EQUAL -> "GREATER_EQUAL"
-        TokenType.LESS -> "LESS"
-        TokenType.LESS_EQUAL -> "LESS_EQUAL"
-        TokenType.IDENTIFIER -> "IDENTIFIER"
-        TokenType.STRING -> "STRING"
-        TokenType.NUMBER -> "NUMBER"
-        TokenType.AND -> "AND"
-        TokenType.CLASS -> "CLASS"
-        TokenType.ELSE -> "ELSE"
-        TokenType.FALSE -> "FALSE"
-        TokenType.FUN -> "FUN"
-        TokenType.FOR -> "FOR"
-        TokenType.IF -> "IF"
-        TokenType.NIL -> "NIL"
-        TokenType.OR -> "OR"
-        TokenType.PRINT -> "PRINT"
-        TokenType.RETURN -> "RETURN"
-        TokenType.SUPER -> "SUPER"
-        TokenType.THIS -> "THIS"
-        TokenType.TRUE -> "TRUE"
-        TokenType.VAR -> "VAR"
-        TokenType.WHILE -> "WHILE"
-        TokenType.EOF -> "EOF"
-        TokenType.COMMENT -> "COMMENT"
-        TokenType.UNTERMINATED_STRING -> "UNTERMINATED_STRING"
-        TokenType.INVALID_NUMBER -> "INVALID_NUMBER"
-    }
+fun tokenTypeToString(type: TokenType) = when (type) {
+    TokenType.LEFT_PAREN -> "LEFT_PAREN"
+    TokenType.RIGHT_PAREN -> "RIGHT_PAREN"
+    TokenType.LEFT_BRACE -> "LEFT_BRACE"
+    TokenType.RIGHT_BRACE -> "RIGHT_BRACE"
+    TokenType.COMMA -> "COMMA"
+    TokenType.DOT -> "DOT"
+    TokenType.MINUS -> "MINUS"
+    TokenType.PLUS -> "PLUS"
+    TokenType.SEMICOLON -> "SEMICOLON"
+    TokenType.SLASH -> "SLASH"
+    TokenType.STAR -> "STAR"
+    TokenType.NOT -> "NOT"
+    TokenType.NOT_EQUAL -> "NOT_EQUAL"
+    TokenType.EQUAL -> "EQUAL"
+    TokenType.EQUAL_EQUAL -> "EQUAL_EQUAL"
+    TokenType.GREATER -> "GREATER"
+    TokenType.GREATER_EQUAL -> "GREATER_EQUAL"
+    TokenType.LESS -> "LESS"
+    TokenType.LESS_EQUAL -> "LESS_EQUAL"
+    TokenType.IDENTIFIER -> "IDENTIFIER"
+    TokenType.STRING -> "STRING"
+    TokenType.NUMBER -> "NUMBER"
+    TokenType.AND -> "AND"
+    TokenType.CLASS -> "CLASS"
+    TokenType.ELSE -> "ELSE"
+    TokenType.FALSE -> "FALSE"
+    TokenType.FUN -> "FUN"
+    TokenType.FOR -> "FOR"
+    TokenType.IF -> "IF"
+    TokenType.NIL -> "NIL"
+    TokenType.OR -> "OR"
+    TokenType.PRINT -> "PRINT"
+    TokenType.RETURN -> "RETURN"
+    TokenType.SUPER -> "SUPER"
+    TokenType.THIS -> "THIS"
+    TokenType.TRUE -> "TRUE"
+    TokenType.VAR -> "VAR"
+    TokenType.WHILE -> "WHILE"
+    TokenType.EOF -> "EOF"
+    TokenType.COMMENT -> "COMMENT"
+
+    //AEVUM KEYWORDS
+    TokenType.SPRITE -> "SPRITE"
+    TokenType.SCENE -> "SCENE"
+    TokenType.ANIM -> "ANIMATION"
+    TokenType.COLLIDE -> "COLLISION"
+    TokenType.MOVE -> "MOVEMENT"
+    TokenType.SPAWN -> "SPAWN"
+    TokenType.JUMP -> "JUMP"
+    TokenType.GRAVITY -> "GRAVITY"
+    TokenType.PHYSICS -> "PHYSICS"
 }
 
 data class Token(
     val type: TokenType,
     val lexeme: String,
     val literal: Any? = null,
-    val line: Int
+    val line: Int,
+    val description: String = ""
 ) {
     override fun toString(): String {
         val literalStr = when (literal) {
@@ -90,227 +96,186 @@ data class Token(
 
 object AevumScanner {
     private val keywords = mapOf(
-        "and" to TokenType.AND,
-        "class" to TokenType.CLASS,
-        "else" to TokenType.ELSE,
-        "false" to TokenType.FALSE,
-        "fun" to TokenType.FUN,
-        "for" to TokenType.FOR,
-        "if" to TokenType.IF,
-        "nil" to TokenType.NIL,
-        "or" to TokenType.OR,
-        "print" to TokenType.PRINT,
-        "return" to TokenType.RETURN,
-        "super" to TokenType.SUPER,
-        "this" to TokenType.THIS,
-        "true" to TokenType.TRUE,
-        "var" to TokenType.VAR,
-        "while" to TokenType.WHILE
+        "and" to TokenType.AND, "class" to TokenType.CLASS, "else" to TokenType.ELSE,
+        "false" to TokenType.FALSE, "fun" to TokenType.FUN, "for" to TokenType.FOR,
+        "if" to TokenType.IF, "nil" to TokenType.NIL, "or" to TokenType.OR,
+        "print" to TokenType.PRINT, "return" to TokenType.RETURN, "super" to TokenType.SUPER,
+        "this" to TokenType.THIS, "true" to TokenType.TRUE, "var" to TokenType.VAR,
+        "while" to TokenType.WHILE,
+
+
+        // AEVUM-KEYWORDS
+        "sprite" to TokenType.SPRITE, "scene" to TokenType.SCENE, "anim" to TokenType.ANIM,
+        "collide" to TokenType.COLLIDE, "move" to TokenType.MOVE, "spawn" to TokenType.SPAWN,
+        "jump" to TokenType.JUMP, "gravity" to TokenType.GRAVITY, "physics" to TokenType.PHYSICS
     )
 
-    private fun emitToken(type: TokenType, lexeme: String, literal: Any? = null, line: Int) {
-        val token = Token(type, lexeme, literal, line)
-        println(token)
-    }
+    private val singleCharTokens = mapOf(
+        '(' to TokenType.LEFT_PAREN, ')' to TokenType.RIGHT_PAREN,
+        '{' to TokenType.LEFT_BRACE, '}' to TokenType.RIGHT_BRACE,
+        ',' to TokenType.COMMA, '.' to TokenType.DOT, '-' to TokenType.MINUS,
+        '+' to TokenType.PLUS, ';' to TokenType.SEMICOLON, '*' to TokenType.STAR
+    )
 
-    private fun isValidNumber(numberStr: String): Boolean {
-        if (numberStr.count { it == '.' } > 1) {
-            return false // Multiple decimal points
-        }
+    private val twoCharOperators = mapOf(
+        '!' to "=", '=' to "=", '<' to "=", '>' to "="
+    )
 
-        // Check if it starts or ends with a decimal point without digits
-        if (numberStr.startsWith('.') && numberStr.length == 1) {
-            return false
-        }
-
-        if (numberStr.endsWith('.') && numberStr.length > 1) {
-            // Check if there's at least one digit before the decimal point
-            val beforeDecimal = numberStr.dropLast(1)
-            if (!beforeDecimal.all { it.isDigit() }) {
-                return false
-            }
-        }
-
-        // Try to parse as double to validate
-        return numberStr.toDoubleOrNull() != null
-    }
+    private fun emitToken(type: TokenType, lexeme: String, literal: Any? = null, line: Int) =
+        println(Token(type, lexeme, literal, line))
 
     fun scanLine(lineText: String, lineNumber: Int) {
         var current = 0
         val length = lineText.length
 
         while (current < length) {
-            val start = current
             val char = lineText[current]
 
-            // Skip whitespace
             if (char.isWhitespace()) {
                 current++
                 continue
             }
 
-            // Single character tokens
-            when (char) {
-                '(' -> { emitToken(TokenType.LEFT_PAREN, "(", null, lineNumber); current++; continue }
-                ')' -> { emitToken(TokenType.RIGHT_PAREN, ")", null, lineNumber); current++; continue }
-                '{' -> { emitToken(TokenType.LEFT_BRACE, "{", null, lineNumber); current++; continue }
-                '}' -> { emitToken(TokenType.RIGHT_BRACE, "}", null, lineNumber); current++; continue }
-                ',' -> { emitToken(TokenType.COMMA, ",", null, lineNumber); current++; continue }
-                '.' -> { emitToken(TokenType.DOT, ".", null, lineNumber); current++; continue }
-                '-' -> { emitToken(TokenType.MINUS, "-", null, lineNumber); current++; continue }
-                '+' -> { emitToken(TokenType.PLUS, "+", null, lineNumber); current++; continue }
-                ';' -> { emitToken(TokenType.SEMICOLON, ";", null, lineNumber); current++; continue }
-                '*' -> { emitToken(TokenType.STAR, "*", null, lineNumber); current++; continue }
-            }
-
-            // One or two character tokens
-            if (char == '!') {
-                if (current + 1 < length && lineText[current + 1] == '=') {
-                    emitToken(TokenType.BANG_EQUAL, "!=", null, lineNumber)
-                    current += 2
-                } else {
-                    emitToken(TokenType.BANG, "!", null, lineNumber)
-                    current++
-                }
+            // Handle single character tokens
+            singleCharTokens[char]?.let {
+                emitToken(it, char.toString(), null, lineNumber)
+                current++
                 continue
             }
 
-            if (char == '=') {
-                if (current + 1 < length && lineText[current + 1] == '=') {
-                    emitToken(TokenType.EQUAL_EQUAL, "==", null, lineNumber)
+            // Handle two-character operators
+            twoCharOperators[char]?.let { expectedNext ->
+                if (current + 1 < length && lineText[current + 1] == expectedNext[0]) {
+                    emitToken(when (char) {
+                        '!' -> TokenType.NOT_EQUAL
+                        '=' -> TokenType.EQUAL_EQUAL
+                        '<' -> TokenType.LESS_EQUAL
+                        '>' -> TokenType.GREATER_EQUAL
+                        else -> throw IllegalStateException("Unexpected operator: $char")
+                    }, "$char$expectedNext", null, lineNumber)
                     current += 2
-                } else {
-                    emitToken(TokenType.EQUAL, "=", null, lineNumber)
-                    current++
-                }
-                continue
-            }
-
-            if (char == '<') {
-                if (current + 1 < length && lineText[current + 1] == '=') {
-                    emitToken(TokenType.LESS_EQUAL, "<=", null, lineNumber)
-                    current += 2
-                } else {
-                    emitToken(TokenType.LESS, "<", null, lineNumber)
-                    current++
-                }
-                continue
-            }
-
-            if (char == '>') {
-                if (current + 1 < length && lineText[current + 1] == '=') {
-                    emitToken(TokenType.GREATER_EQUAL, ">=", null, lineNumber)
-                    current += 2
-                } else {
-                    emitToken(TokenType.GREATER, ">", null, lineNumber)
-                    current++
-                }
-                continue
-            }
-
-            // Comments
-            if (char == '/') {
-                if (current + 1 < length) {
-                    when (lineText[current + 1]) {
-                        '/' -> {
-                            // Single line comment - skip rest of line
-                            current = length
-                            continue
-                        }
-                        '*' -> {
-                            // Multi-line comment start
-                            current += 2
-                            while (current < length - 1) {
-                                if (lineText[current] == '*' && lineText[current + 1] == '/') {
-                                    current += 2
-                                    break
-                                }
-                                current++
-                            }
-                            continue
-                        }
-                        else -> {
-                            emitToken(TokenType.SLASH, "/", null, lineNumber)
-                            current++
-                            continue
-                        }
-                    }
-                } else {
-                    emitToken(TokenType.SLASH, "/", null, lineNumber)
+                    continue
+                } else if (char == '!') {
+                    emitToken(TokenType.NOT, "!", null, lineNumber)
                     current++
                     continue
                 }
             }
 
-            // String literals
+            // Handle remaining operators
+            when (char) {
+                '=' -> { emitToken(TokenType.EQUAL, "=", null, lineNumber); current++; continue }
+                '<' -> { emitToken(TokenType.LESS, "<", null, lineNumber); current++; continue }
+                '>' -> { emitToken(TokenType.GREATER, ">", null, lineNumber); current++; continue }
+            }
+
+            // Handle comments
+            if (char == '/') {
+                when {
+                    current + 1 < length && lineText[current + 1] == '/' -> {
+                        current = length
+                        continue
+                    }
+                    current + 1 < length && lineText[current + 1] == '*' -> {
+                        current += 2
+                        while (current < length - 1 && !(lineText[current] == '*' && lineText[current + 1] == '/')) {
+                            current++
+                        }
+                        if (current < length - 1) current += 2
+                        continue
+                    }
+                    else -> {
+                        emitToken(TokenType.SLASH, "/", null, lineNumber)
+                        current++
+                        continue
+                    }
+                }
+            }
+
+            // Handle strings - print error message for invalid strings
             if (char == '"') {
                 current++
-                val stringStart = current
-
-                // Find the closing quote
-                while (current < length && lineText[current] != '"') {
-                    current++
-                }
+                val start = current
+                while (current < length && lineText[current] != '"') current++
 
                 if (current >= length) {
-                    // Unterminated string - no closing quote found
-                    val content = lineText.substring(stringStart)
-                    emitToken(TokenType.UNTERMINATED_STRING, "\"$content", content, lineNumber)
+                    // Unterminated string - print error message
+                    val content = lineText.substring(start)
+                    println("ERROR: Unterminated string literal at line $lineNumber: \"$content")
                 } else {
-                    // Properly terminated string
-                    val content = lineText.substring(stringStart, current)
+                    val content = lineText.substring(start, current)
                     emitToken(TokenType.STRING, "\"$content\"", content, lineNumber)
                     current++ // Skip closing quote
                 }
                 continue
             }
 
-            // Numbers
-            if (char.isDigit()) {
-                val numberStart = current
+            // Handle numbers - scan multiple numbers separated by dots
+            if (char.isDigit() || (char == '.' && current + 1 < length && lineText[current + 1].isDigit())) {
+                val start = current
 
-                // Consume digits and at most one decimal point
-                var decimalPointFound = false
+                // Scan the entire number sequence including multiple dots
                 while (current < length) {
-                    val currentChar = lineText[current]
-                    if (currentChar.isDigit()) {
-                        current++
-                    } else if (currentChar == '.' && !decimalPointFound && current + 1 < length && lineText[current + 1].isDigit()) {
-                        decimalPointFound = true
+                    val c = lineText[current]
+                    if (c.isDigit() || c == '.') {
                         current++
                     } else {
                         break
                     }
                 }
 
-                val numberStr = lineText.substring(numberStart, current)
+                // Process the scanned sequence to extract individual numbers
+                var scanPos = start
+                while (scanPos < current) {
+                    // Find the next valid number (digits followed by optional decimal and more digits)
+                    var numberEnd = scanPos
+                    var decimalFound = false
 
-                if (isValidNumber(numberStr)) {
-                    val numberValue = numberStr.toDouble()
-                    emitToken(TokenType.NUMBER, numberStr, numberValue, lineNumber)
-                } else {
-                    emitToken(TokenType.INVALID_NUMBER, numberStr, numberStr, lineNumber)
+                    while (numberEnd < current) {
+                        val c = lineText[numberEnd]
+                        if (c.isDigit()) {
+                            numberEnd++
+                        } else if (c == '.' && !decimalFound && numberEnd + 1 < current && lineText[numberEnd + 1].isDigit()) {
+                            decimalFound = true
+                            numberEnd++
+                        } else {
+                            break
+                        }
+                    }
+
+                    // Emit the number token if we found a valid number
+                    if (numberEnd > scanPos) {
+                        val numStr = lineText.substring(scanPos, numberEnd)
+                        emitToken(TokenType.NUMBER, numStr, numStr.toDouble(), lineNumber)
+                        scanPos = numberEnd
+                    }
+
+                    // Skip any extra dots between numbers
+                    while (scanPos < current && lineText[scanPos] == '.') {
+                        scanPos++
+                    }
                 }
+
+                current = scanPos
                 continue
             }
 
-            // Identifiers and keywords
+            // Handle identifiers and keywords
             if (char.isLetter() || char == '_') {
-                while (current < length && (lineText[current].isLetterOrDigit() || lineText[current] == '_')) {
-                    current++
-                }
+                val start = current
+                while (current < length && (lineText[current].isLetterOrDigit() || lineText[current] == '_')) current++
+
                 val text = lineText.substring(start, current)
                 val type = keywords[text] ?: TokenType.IDENTIFIER
                 emitToken(type, text, null, lineNumber)
                 continue
             }
 
-            // Unknown character (treat as identifier for now)
+            // Unknown character
             emitToken(TokenType.IDENTIFIER, char.toString(), null, lineNumber)
             current++
         }
 
-        // End of line
         emitToken(TokenType.EOF, "", null, lineNumber)
     }
 }
@@ -325,11 +290,8 @@ fun main() {
     while (true) {
         print("> ")
         val line = inputScanner.nextLine().trim()
-        if (line.equals("exit", ignoreCase = true)) {
-            break
-        }
-        AevumScanner.scanLine(line, lineNumber)
-        lineNumber++
+        if (line.equals("exit", ignoreCase = true)) break
+        AevumScanner.scanLine(line, lineNumber++)
     }
 
     println("Goodbye!")

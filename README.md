@@ -6,8 +6,7 @@ Brethren Ace D. de la Gente
 Sophe Mae C. Dela Cruz
 
 ## Language Overview  
-Aevum is a high-level, general purpose, object-oriented programming (OOP) language which is used for desktop, mobile, and web applications. Aevum, as an object-oriented programming language, is a fast, simpler, and secured programming language which helps beginner programmers to explore OOP and its principles.
-
+Aevum is a high-level, general-purpose, object-oriented programming (OOP) language designed specifically for game development. It is used for creating desktop, mobile, and web-based games. Aevum simplifies the learning process for beginners by incorporating game-specific keywords, making it easier to explore object-oriented programming while creating interactive game features. Aevum also integrates advanced game concepts like movement, physics, collision detection, and animations in a user-friendly manner.
 ## Keywords
 
 * ```and``` - a logical operator that returns _true_ if both statements are _true_. Otherwise, returns _false_.
@@ -28,35 +27,47 @@ Aevum is a high-level, general purpose, object-oriented programming (OOP) langua
 * ```this``` - a reference variable that refers to the current object in the constructor or a method.
 * ```var``` - used to define a variable inside a function or code block.
 
+## Aevum-Specific Keywords
+
+* ```sprite``` - represents a visual object in the game (e.g., character, enemy).
+* ```scene``` - defines a game scene where actions and objects exist.
+* ```anim``` - specifies an animation sequence for a sprite.
+* ```collide``` - defines collision behavior between objects.
+* ```move``` - handles movement of game objects.
+* ```spawn``` - spawns a new game object into the scene.
+* ```jump``` - triggers a jump action for a sprite.
+* ```gravity``` - defines gravity effect on objects.
+* ```physics``` - handles physics-related calculations like velocity, acceleration.
+
 ## Operators
 
 ### Arithmetic Operators
 
-| Operators | Name |
-| :---: | :---: |
-| + | Addition |
-| - | Subtraction |
-| * | Multiplication |
-| / | Division |
+| Operators |      Name      |
+|:---------:|:--------------:|
+|     +     |    Addition    |
+|     -     |  Subtraction   |
+|     *     | Multiplication |
+|     /     |    Division    |
 
 ### Comparison Operators
 
-| Operators | Name | Example | 
-| :---: | :---: | :---: |
-| == | Equal to | x == y |
-| != | Not equal | x != y |
-| > | Greater than | x > y |
-| < | Less than | x < y |
-| >= | Greater than or equal | x >= y |
-| <= | Less than or equal | x <= y |
+| Operators |         Name          | Example | 
+|:---------:|:---------------------:|:-------:|
+|    ==     |       Equal to        | x == y  |
+|    !=     |       Not equal       | x != y  |
+|     >     |     Greater than      |  x > y  |
+|     <     |       Less than       |  x < y  |
+|    >=     | Greater than or equal | x >= y  |
+|    <=     |  Less than or equal   | x <= y  |
 
 ### Logical Operators
 
-| Operators | Name | Description | 
-| :---: | :---: | :--- |
-| and | Logical AND | Returns *true* if both statements are *true*. Otherwise, *false* |
-| or | Logical OR | Returns *true* if at least one of the statements is *true* |
-| nil | Logical NOT | Returns *true* if the statement is *false* and vice versa |
+| Operators |    Name     | Description                                                      | 
+|:---------:|:-----------:|:-----------------------------------------------------------------|
+|    and    | Logical AND | Returns *true* if both statements are *true*. Otherwise, *false* |
+|    or     | Logical OR  | Returns *true* if at least one of the statements is *true*       |
+|    nil    | Logical NOT | Returns *true* if the statement is *false* and vice versa        |
 
 ## Literals
 
@@ -129,5 +140,14 @@ for (x in list) {
 }
 ```
 
+```
+var player = "Hero"
+sprite(player) // Spawns player sprite
+move(player, 10, 5) // Moves player to position (10, 5)
+collide(player, "Enemy") // Checks for collision with enemy
+jump(player, 5) // Makes player jump
+gravity(player) // Apply gravity to the player
+```
+
 ## Design Rationale  
-The creators of Aevum decided to create a high-level, object oriented programming language which allows programmers to explore object-oriented programming while making it less complex and for readability and maintainability purposes.
+The creators of Aevum decided to create a high-level, object-oriented programming language with game development in mind. This allows programmers to easily integrate complex game mechanics such as movement, animations, collision detection, and physics while learning object-oriented programming principles. Aevum is designed to be beginner-friendly, while maintaining powerful features that can be used to create full-fledged games.
