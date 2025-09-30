@@ -1,4 +1,4 @@
-import java.util.Scanner as InputScanner
+/* import java.util.Scanner as InputScanner
 
 enum class TokenType {
     // Single-character tokens
@@ -121,13 +121,8 @@ object AevumScanner {
         '!' to "=", '=' to "=", '<' to "=", '>' to "="
     )
 
-    private fun emitToken(type: TokenType, lexeme: String, literal: Any? = null, line: Int) {
+    private fun emitToken(type: TokenType, lexeme: String, literal: Any? = null, line: Int) =
         println(Token(type, lexeme, literal, line))
-    }
-
-    private fun emitError(message: String, line: Int) {
-        println("ERROR at line $line: $message")
-    }
 
     fun scanLine(lineText: String, lineNumber: Int) {
         var current = 0
@@ -206,7 +201,7 @@ object AevumScanner {
                 if (current >= length) {
                     // Unterminated string - print error message
                     val content = lineText.substring(start)
-                    emitError("Unterminated string literal at line $content", lineNumber)
+                    println("ERROR: Unterminated string literal at line $lineNumber: \"$content")
                 } else {
                     val content = lineText.substring(start, current)
                     emitToken(TokenType.STRING, "\"$content\"", content, lineNumber)
@@ -215,16 +210,53 @@ object AevumScanner {
                 continue
             }
 
-            // Handle numbers
+            // Handle numbers - scan multiple numbers separated by dots
             if (char.isDigit() || (char == '.' && current + 1 < length && lineText[current + 1].isDigit())) {
                 val start = current
-                while (current < length && (lineText[current].isDigit() || lineText[current] == '.')) current++
-                val numberStr = lineText.substring(start, current)
-                if (numberStr.count { it == '.' } > 1) {
-                    emitError("Invalid number format: $numberStr", lineNumber)
-                } else {
-                    emitToken(TokenType.NUMBER, numberStr, numberStr.toDouble(), lineNumber)
+
+                // Scan the entire number sequence including multiple dots
+                while (current < length) {
+                    val c = lineText[current]
+                    if (c.isDigit() || c == '.') {
+                        current++
+                    } else {
+                        break
+                    }
                 }
+
+                // Process the scanned sequence to extract individual numbers
+                var scanPos = start
+                while (scanPos < current) {
+                    // Find the next valid number (digits followed by optional decimal and more digits)
+                    var numberEnd = scanPos
+                    var decimalFound = false
+
+                    while (numberEnd < current) {
+                        val c = lineText[numberEnd]
+                        if (c.isDigit()) {
+                            numberEnd++
+                        } else if (c == '.' && !decimalFound && numberEnd + 1 < current && lineText[numberEnd + 1].isDigit()) {
+                            decimalFound = true
+                            numberEnd++
+                        } else {
+                            break
+                        }
+                    }
+
+                    // Emit the number token if we found a valid number
+                    if (numberEnd > scanPos) {
+                        val numStr = lineText.substring(scanPos, numberEnd)
+                        emitToken(TokenType.NUMBER, numStr, numStr.toDouble(), lineNumber)
+                        scanPos = numberEnd
+                    }
+
+                    // Skip any extra dots between numbers
+                    while (scanPos < current && lineText[scanPos] == '.') {
+                        scanPos++
+                    }
+                }
+
+                current = scanPos
                 continue
             }
 
@@ -263,4 +295,4 @@ fun main() {
     }
 
     println("Goodbye!")
-}
+}*/
