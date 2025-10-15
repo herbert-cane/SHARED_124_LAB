@@ -12,6 +12,8 @@ enum class TokenType {
     // Literals
     IDENTIFIER, STRING, NUMBER,
 
+    NIL, TRUE, FALSE,
+
     // Keywords for text RPG
     START, SPEAK, CHOICE, OPTION, ACTION, ENDGAME, CONTINUE, IF, ELSE, VAR, PRINT, RESTART, INVENTORY,
 
