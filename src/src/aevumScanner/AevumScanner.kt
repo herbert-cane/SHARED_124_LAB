@@ -12,8 +12,6 @@ class AevumScanner {
     val keywords = Keywords()
     var current = 0
 
-    // Two character operators (e.g., `==`, `<=`)
-
     // Function to emit tokens (output token details)
     private fun emitToken(type: TokenType, lexeme: String, literal: Any? = null, line: Int) {
         println(Token(type, lexeme, literal, line))
@@ -26,6 +24,8 @@ class AevumScanner {
 
     // Refactored scanLine function
     fun scanLine(lineText: String, lineNumber: Int) {
+        // Reset current to start from the beginning of the line
+        current = 0
         val length = lineText.length
 
         while (current < length) {
@@ -36,13 +36,13 @@ class AevumScanner {
                 char.isWhitespace() -> current++
 
                 // Handle single-character tokens
-                char in singleChar.singleCharTokens -> handlesingleCharToken(char, lineText, lineNumber)
+                char in singleChar.singleCharTokens -> handleSingleCharToken(char, lineNumber)
 
                 // Handle two-character operators (like ==, <=, etc.)
                 char in doubleChar.twoCharOperators -> handleTwoCharOperator(char, lineText, lineNumber)
 
                 // Handle comments (both // and /* */)
-                char == '/' -> handleComment(lineText, lineNumber)
+                char == '/' -> handleComment(lineText)
 
                 // Handle string literals
                 char == '"' -> handleStringLiteral(lineText, lineNumber)
@@ -67,7 +67,7 @@ class AevumScanner {
     }
 
     // Handle single-character tokens
-    private fun handlesingleCharToken(char: Char, lineText: String, lineNumber: Int) {
+    private fun handleSingleCharToken(char: Char, lineNumber: Int) {
         emitToken(singleChar.singleCharTokens[char]!!, char.toString(), null, lineNumber)
         current++
     }
@@ -91,7 +91,7 @@ class AevumScanner {
     }
 
     // Handle comments (both single-line // and multi-line /* */)
-    private fun handleComment(lineText: String, lineNumber: Int) {
+    private fun handleComment(lineText: String) {
         if (current + 1 < lineText.length && lineText[current + 1] == '/') {
             // Single-line comment: Skip till end of line
             current = lineText.length
@@ -139,6 +139,6 @@ class AevumScanner {
 
         val text = lineText.substring(start, current)
         val type = keywords.keywords[text] ?: TokenType.IDENTIFIER
-        emitToken(TokenType.IDENTIFIER, text, null, lineNumber)
+        emitToken(type, text, null, lineNumber)
     }
 }

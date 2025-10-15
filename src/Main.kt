@@ -1,8 +1,5 @@
-import java.util.Scanner as InputScanner
-import src.tokenType.TokenType
 import src.aevumScanner.AevumScanner
-import src.token.Token
-
+import java.util.Scanner as InputScanner
 
 fun main() {
     val inputScanner = InputScanner(System.`in`)
@@ -15,10 +12,13 @@ fun main() {
     while (true) {
         print("> ")
         val line = inputScanner.nextLine().trim()
-        if (line.equals("exit", ignoreCase = true)) break
-        scanner.scanLine(line, lineNumber++)
-    }
 
+        if (line.equals("exit", ignoreCase = true)) break
+
+        // Pass the current line to the scanner for processing
+        scanner.scanLine(line, lineNumber)
+        lineNumber++  // Increment line number after processing
+    }
 
     println("Goodbye!")
 }
