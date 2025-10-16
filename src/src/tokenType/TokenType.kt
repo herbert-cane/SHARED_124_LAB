@@ -8,11 +8,16 @@ enum class TokenType {
     // One or two character tokens
     NOT, NOT_EQUAL, EQUAL, EQUAL_EQUAL,
     GREATER, GREATER_EQUAL, LESS, LESS_EQUAL,
+    QMARK,
+
+    // Boolean tokens
+    TRUE, FALSE, NIL,
 
     // Literals
     IDENTIFIER, STRING, NUMBER,
 
-    NIL, TRUE, FALSE,
+    // Basic Keywords
+    AND, OR, FOR, WHILE, FUN, RETURN, CLASS, SUPER,
 
     // Keywords for text RPG
     START, SPEAK, CHOICE, OPTION, ACTION, ENDGAME, CONTINUE, IF, ELSE, VAR, PRINT, RESTART, INVENTORY,

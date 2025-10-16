@@ -144,6 +144,64 @@ Nested comments are supported.
   var x = (y + 10) - (z * 5)  
   ```
 
+## Grammar
+
+### Program Structure
+program        → declaration* EOF
+
+### Declarations
+declaration    → varDecl | statement | gameDecl
+varDecl        → "var" IDENTIFIER ( "=" expression )? newline
+gameDecl       → sceneDecl | dialogueDecl | choiceDecl | actionDecl
+
+### Game-specific Declarations
+sceneDecl      → "start" STRING newline
+| "continue" STRING newline
+| "restart" newline
+
+dialogueDecl   → "speak" expression newline
+| "say" expression newline
+
+choiceDecl     → "choice" "{" newline option+ "}" newline
+option         → "option" STRING "->" "{" newline statement* "}" newline
+
+actionDecl     → "action" STRING "->" "{" newline statement* "}" newline
+| "trigger" STRING newline
+| "win" expression newline
+| "lose" expression newline
+| "endgame" expression newline
+
+### Statements
+statement      → exprStmt | ifStmt | forStmt | whileStmt | block | returnStmt | printStmt
+exprStmt       → expression newline
+ifStmt         → "if" "(" expression ")" statement ( "else" statement )?
+forStmt        → "for" "(" ( varDecl | exprStmt | ";" ) expression? ";" expression? ")" statement
+whileStmt      → "while" "(" expression ")" statement
+| "do" statement "while" "(" expression ")" newline
+block          → "{" declaration* "}"
+returnStmt     → "return" expression? newline
+printStmt      → "print" expression newline
+
+### Expressions
+expression     → assignment
+assignment     → IDENTIFIER "=" assignment | logic_or
+logic_or       → logic_and ( "or" logic_and )*
+logic_and      → equality ( "and" equality )*
+equality       → comparison ( ( "!=" | "==" ) comparison )*
+comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )*
+term           → factor ( ( "-" | "+" ) factor )*
+factor         → unary ( ( "/" | "*" ) unary )*
+unary          → ( "!" | "-" ) unary | call
+call           → primary ( "(" arguments? ")" )*
+primary        → "true" | "false" | "nil" | NUMBER | STRING | IDENTIFIER | "(" expression ")"
+| "character" | "spawn" | "inventory" | "item" | "add" | "use"
+| "HP" | "ATK" | "DEF"
+
+### Rules
+
+arguments      → expression ( "," expression )*
+newline        → "\n"
+
 ## Sample Code
 
 [Provide a few examples of valid code in your language to demonstrate the syntax and features]
