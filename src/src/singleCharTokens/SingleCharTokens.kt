@@ -18,6 +18,7 @@ class SingleCharTokens {
         '*' to TokenType.STAR,
         '=' to TokenType.EQUAL,
         '<' to TokenType.GREATER,
-        '>' to TokenType.LESS
+        '>' to TokenType.LESS,
+        '?' to TokenType.QMARK
     )
 }
