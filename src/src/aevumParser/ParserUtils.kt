@@ -1,5 +1,6 @@
 package src.aevumParser
 
+import src.error.ParserErrorHandler
 import src.token.Token
 import src.tokenType.TokenType
 
@@ -41,7 +42,8 @@ class ParserUtilities(private val tokens: List<Token>) {
      */
     fun consume(type: TokenType, message: String): Token {
         if (check(type)) return advance()
-        throw error(peek(), message)
+        // throw error(peek(), message)
+        throw ParserErrorHandler.report(peek(), message)
     }
 
     /**
@@ -89,14 +91,15 @@ class ParserUtilities(private val tokens: List<Token>) {
     /**
      * Reports a parsing error and returns a ParseError for unwinding the call stack.
      *
-     * @param token The token where the error occurred
-     * @param message Description of the error
+//     * @param token The token where the error occurred
+//     * @param message Description of the error
      * @return A ParseError instance to throw
      */
-    fun error(token: Token, message: String): ParseError {
-        println("[line ${token.line}] Error at '${token.lexeme}': $message")
-        return ParseError()
-    }
+    @Suppress("unused")
+//    fun error(token: Token, message: String): ParseError {
+//        println("[line ${token.line}] Error at '${token.lexeme}': $message")
+//        return ParseError()
+//    }
 
     /**
      * Exception class for parser errors.

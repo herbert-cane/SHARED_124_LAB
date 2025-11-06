@@ -1,6 +1,7 @@
 package src.aevumParser
 
 import src.ast.Expr
+import src.error.ParserErrorHandler
 import src.token.Token
 import src.tokenType.TokenType.*
 
@@ -30,10 +31,11 @@ class AevumParser(private val tokens: List<Token>) {
      * @return The root expression node of the AST, or null if parsing failed
      */
     fun parse(): Expr? {
-        return try {
+//        return try {
             // If we're at the end with no tokens, it's an error (empty input)
             if (utils.isAtEnd() || (tokens.size == 1 && tokens[0].type == EOF)) {
-                throw utils.error(utils.peek(), "Expect expression.")
+                // throw utils.error(utils.peek(), "Expect expression.")
+                throw ParserErrorHandler.report(utils.peek(), "Expect expression.")
             }
 
             // Start parsing from the highest-level expression rule
@@ -41,14 +43,15 @@ class AevumParser(private val tokens: List<Token>) {
 
             // Ensure we consumed all input tokens (no extra tokens remaining)
             if (!utils.isAtEnd()) {
-                throw utils.error(utils.peek(), "Unexpected token after expression.")
+                // throw utils.error(utils.peek(), "Unexpected token after expression.")
+                throw ParserErrorHandler.report(utils.peek(), "Unexpected token after expression.")
             }
 
-            expr
-        } catch (_: ParserUtilities.ParseError) {
-            // Return null to indicate parsing failure (error already printed)
-            null
-        }
+            return expr
+//        } catch (_: ParserUtilities.ParseError) {
+//            // Return null to indicate parsing failure (error already printed)
+//            null
+//        }
     }
 
     /**
@@ -64,7 +67,8 @@ class AevumParser(private val tokens: List<Token>) {
         // If we just parsed a variable and the next token is also an identifier,
         // this indicates invalid syntax rather than a valid expression
         if (!utils.isAtEnd() && utils.peek().type == IDENTIFIER && expr is Expr.Variable) {
-            throw utils.error(utils.previous(), "Expect expression.")
+            // throw utils.error(utils.previous(), "Expect expression.")
+            throw ParserErrorHandler.report(utils.previous(), "Expect expression.")
         }
 
         return expr
@@ -187,6 +191,7 @@ class AevumParser(private val tokens: List<Token>) {
         }
 
         // If none of the above matched, we have a syntax error
-        throw utils.error(utils.peek(), "Expect expression.")
+        // throw utils.error(utils.peek(), "Expect expression.")
+        throw ParserErrorHandler.report(utils.peek(), "Expect expression.")
     }
 }
