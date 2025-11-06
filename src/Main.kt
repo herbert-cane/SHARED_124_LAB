@@ -1,14 +1,17 @@
+import src.aevumEvaluator.AevumEvaluator
 import src.aevumScanner.AevumScanner
 import src.aevumParser.AevumParser
 import src.ast.AstPrinter
 import src.token.Token
 import src.error.ParserErrorHandler
+import src.aevumEvaluator.RuntimeErrorHandler
 import java.util.Scanner as InputScanner
 
 fun main() {
     val inputScanner = InputScanner(System.`in`)
     val scanner = AevumScanner()
     val printer = AstPrinter()
+    val evaluator = AevumEvaluator()
 
     println("Welcome to Aevum REPL. Type your code below:")
     println("Type 'exit' to quit.")
