@@ -2,6 +2,7 @@ import src.aevumScanner.AevumScanner
 import src.aevumParser.AevumParser
 import src.ast.AstPrinter
 import src.token.Token
+import src.error.ParserErrorHandler
 import java.util.Scanner as InputScanner
 
 fun main() {
@@ -38,12 +39,19 @@ fun main() {
         // Parse the tokens into an AST - but only if we have meaningful tokens
         if (meaningfulTokens.isNotEmpty()) {
             val parser = AevumParser(tokens)
-            val expression = parser.parse()
 
-            // Print the AST if parsing was successful
-            if (expression != null) {
-                println(printer.print(expression))
+            try {
+                val expression = parser.parse()
+
+                // Print the AST if parsing was successful
+                if (expression != null) {
+                    println(printer.print(expression))
+                }
+
+            } catch (error: ParserErrorHandler.ParseError) {
+                println("[line $lineNumber] Error: ${error.message}")
             }
+
             // If expression is null, the parser already printed the error
         } else {
             // No meaningful tokens (just comments or whitespace)
