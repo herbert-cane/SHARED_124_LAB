@@ -165,7 +165,7 @@ class AevumScanner {
             while (current < source.length && source[current] != '\n') {
                 current++
             }
-            // Note: We do NOT consume the \n here.
+            // We do NOT consume the \n here.
             // The main loop will see it next, increment line++, and consume it.
             return true
         } else if (current + 1 < source.length && source[current + 1] == '*') {

@@ -1,18 +1,20 @@
-// File: src/ast/Stmt.kt
 package src.ast
 
 import src.token.Token
 
 sealed class Stmt {
-    // Example: "print 1 + 1;"
+    // The Root Node. It holds the top of the tree.
+    data class Program(val body: Stmt?) : Stmt()
+
+    // 'first' is the left child (current statement)
+    // 'next' is the right child (the rest of the code)
+    data class Sequence(val first: Stmt, val next: Stmt) : Stmt()
+
+    // Block holds a single Stmt (which might be a Sequence tree)
+    data class Block(val body: Stmt?) : Stmt()
+
+    // These remain the same
     data class Print(val expression: Expr) : Stmt()
-
-    // Example: "1 + 1;" (Evaluating for side effects)
     data class Expression(val expression: Expr) : Stmt()
-
-    // Example: "var x = 10;"
     data class Var(val name: Token, val initializer: Expr?) : Stmt()
-
-    // Example: "{ var x = 1; print x; }"
-    data class Block(val statements: List<Stmt>) : Stmt()
 }

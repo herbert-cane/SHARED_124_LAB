@@ -6,28 +6,39 @@ import src.aevumEnvironment.Environment
 import src.tokenType.TokenType.*
 
 class AevumEvaluator2 {
-    // The current environment (scope). Starts with the global scope.
     private var environment = Environment()
 
-    // Entry point for a list of statements (Program)
-    fun interpret(statements: List<Stmt>) {
+    // Accept the Root Program Node
+    fun interpret(program: Stmt.Program) {
         try {
-            for (statement in statements) {
-                execute(statement)
+            if (program.body != null) {
+                execute(program.body)
             }
-        } catch (_: RuntimeErrorHandler.RuntimeError) {
-            // The RuntimeErrorHandler.report() method already printed the error message
-            // before throwing the exception. We just catch it here to stop execution.
+        } catch (error: RuntimeErrorHandler.RuntimeError) {
+            // catch logic
         }
     }
 
-    // execute() handles Statements (Action)
     private fun execute(stmt: Stmt) {
         when (stmt) {
+            // [NEW] The Sequence Logic (Traversing the tree)
+            is Stmt.Sequence -> {
+                execute(stmt.first) // Execute Left Child
+                execute(stmt.next)  // Execute Right Child
+            }
+
+            // [CHANGE] Program and Block now just unwrap the body
+            is Stmt.Program -> if (stmt.body != null) execute(stmt.body)
+            is Stmt.Block -> {
+                if (stmt.body != null) {
+                    executeBlock(stmt.body, Environment(environment))
+                }
+            }
+
+            // ... Existing logic ...
             is Stmt.Expression -> evaluate(stmt.expression)
             is Stmt.Print -> {
                 val value = evaluate(stmt.expression)
-                // [Use Helper]
                 println(EvaluatorUtils.stringify(value))
             }
             is Stmt.Var -> {
@@ -37,26 +48,21 @@ class AevumEvaluator2 {
                 }
                 environment.define(stmt.name.lexeme, value)
             }
-            is Stmt.Block -> {
-                executeBlock(stmt.statements, Environment(environment))
-            }
         }
     }
 
-    // executeBlock() handles nested scopes
-    private fun executeBlock(statements: List<Stmt>, environment: Environment) {
+    // Updated Block Execution
+    private fun executeBlock(body: Stmt, environment: Environment) {
         val previous = this.environment
         try {
             this.environment = environment
-            for (statement in statements) {
-                execute(statement)
-            }
+            execute(body) // This will trigger the Sequence traversal recursively
         } finally {
             this.environment = previous
         }
     }
 
-    // evaluate() handles Expressions (Values)
+    // ... (Evaluate methods and Helpers remain the same) ...
     private fun evaluate(expr: Expr): Any? {
         return when (expr) {
             is Expr.Literal -> expr.value

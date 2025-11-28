@@ -76,23 +76,21 @@ object MainLab4 {
     private fun run(source: String) {
         // 1. Scan
         val scanner = AevumScanner()
-        // Note: scanLine in your previous code took lineNumber.
-        // If you still use that signature, pass 1 or track it.
-        // Assuming scanLine(source, 1) or similar based on your Scanner implementation:
         val tokens = scanner.scanLine(source, 1)
 
         if (tokens.isNotEmpty()) {
-            // 2. Parse (Using AevumParser2 which returns List<Stmt>)
+            // 2. Parse
             val parser = AevumParser2(tokens)
 
             try {
-                val statements = parser.parse()
+                // Program = AST root node, changed in Stmt.kt
+                val program = parser.parse()
 
-                // 3. Interpret Statements
-                interpreter.interpret(statements)
+                // 3. Interpret, now it's Stmt.Program, which is a tree
+                interpreter.interpret(program)
 
             } catch (_: ParserErrorHandler.ParseError) {
-                // ParserErrorHandler prints the message, we just catch to reset
+                // Error handling
             } catch (e: Exception) {
                 println("Error: ${e.message}")
             }

@@ -13,18 +13,35 @@ class AevumParser2(private val tokens: List<Token>) {
     // 1. Entry Point
     // -------------------------------------------------------------------------
 
-    // Now returns a list of statements (a full program) instead of one expression
-    fun parse(): List<Stmt> {
-        val statements = mutableListOf<Stmt>()
+    fun parse(): Stmt.Program {
+        val body = parseStatementsRecursively()
+        return Stmt.Program(body)
+    }
 
-        while (!utils.isAtEnd()) {
-            val decl = declaration()
-            if (decl != null) {
-                statements.add(decl)
-            }
+    /**
+     * Builds a Binary Tree of Statements.
+     * 1. Parse the current statement (Left Child).
+     * 2. Recursively parse the rest (Right Child).
+     * 3. Combine them into a Sequence node.
+     */
+    private fun parseStatementsRecursively(): Stmt? {
+        if (utils.isAtEnd()) {
+            return null
         }
 
-        return statements
+        val first = declaration()
+
+        // If the current declaration failed, try to recover/continue
+        if (first == null) {
+            return parseStatementsRecursively()
+        }
+
+        val rest = parseStatementsRecursively() ?: return first
+
+        // If there is no code after this, just return the single statement
+
+        // Connect them: Sequence(Left, Right)
+        return Stmt.Sequence(first, rest)
     }
 
     // -------------------------------------------------------------------------
@@ -42,19 +59,17 @@ class AevumParser2(private val tokens: List<Token>) {
 
     private fun varDeclaration(): Stmt {
         val name = utils.consume(IDENTIFIER, "Expect variable name.")
-
         var initializer: Expr? = null
         if (utils.match(EQUAL)) {
             initializer = expression()
         }
-
         utils.consume(SEMICOLON, "Expect ';' after variable declaration.")
         return Stmt.Var(name, initializer)
     }
 
     private fun statement(): Stmt {
         if (utils.match(PRINT)) return printStatement()
-        if (utils.match(LEFT_BRACE)) return Stmt.Block(block())
+        if (utils.match(LEFT_BRACE)) return block()
         return expressionStatement()
     }
 
@@ -64,16 +79,31 @@ class AevumParser2(private val tokens: List<Token>) {
         return Stmt.Print(value)
     }
 
-    private fun block(): List<Stmt> {
-        val statements = mutableListOf<Stmt>()
+    // [CHANGE] Block now returns a Tree of Stmts
+    private fun block(): Stmt {
+        val body = parseBlockRecursively()
+        utils.consume(RIGHT_BRACE, "Expect '}' after block.")
+        return Stmt.Block(body)
+    }
 
-        while (!utils.check(RIGHT_BRACE) && !utils.isAtEnd()) {
-            val decl = declaration()
-            if (decl != null) statements.add(decl)
+    private fun parseBlockRecursively(): Stmt? {
+        if (utils.check(RIGHT_BRACE) || utils.isAtEnd()) {
+            return null
         }
 
-        utils.consume(RIGHT_BRACE, "Expect '}' after block.")
-        return statements
+        val first = declaration()
+
+        if (first == null) {
+            return parseBlockRecursively()
+        }
+
+        val rest = parseBlockRecursively()
+
+        if (rest == null) {
+            return first
+        }
+
+        return Stmt.Sequence(first, rest)
     }
 
     private fun expressionStatement(): Stmt {
@@ -82,28 +112,23 @@ class AevumParser2(private val tokens: List<Token>) {
         return Stmt.Expression(expr)
     }
 
-    // -------------------------------------------------------------------------
-    // 3. Expression Parsing (Updated for Assignment)
-    // -------------------------------------------------------------------------
-
+    // ... (All expression parsing and synchronize methods remain exactly the same) ...
+    // Copy them from your previous file.
     private fun expression(): Expr {
         return assignment()
     }
 
     private fun assignment(): Expr {
-        // Parse the left-hand side (which might be the assignment target)
         val expr = equality()
 
         if (utils.match(EQUAL)) {
             val equals = utils.previous()
-            val value = assignment() // Recursive to handle a = b = 5
+            val value = assignment()
 
             if (expr is Expr.Variable) {
                 return Expr.Assign(expr.name, value)
             }
 
-            // We report the error but don't throw it, effectively ignoring the assignment
-            // to keep the parser going if possible.
             ParserErrorHandler.report(equals, "Invalid assignment target.")
         }
 
@@ -180,10 +205,6 @@ class AevumParser2(private val tokens: List<Token>) {
 
         throw ParserErrorHandler.report(utils.peek(), "Expect expression.")
     }
-
-    // -------------------------------------------------------------------------
-    // 4. Error Recovery
-    // -------------------------------------------------------------------------
 
     private fun synchronize() {
         utils.advance()
