@@ -17,7 +17,6 @@ class AevumEvaluator2 {
                 execute(statement)
             }
         } catch (error: RuntimeErrorHandler.RuntimeError) {
-            // [FIX 1] No need to access 'error.token' or print again.
             // The RuntimeErrorHandler.report() method already printed the error message
             // before throwing the exception. We just catch it here to stop execution.
         }
@@ -25,8 +24,6 @@ class AevumEvaluator2 {
 
     // execute() handles Statements (Action)
     private fun execute(stmt: Stmt) {
-        // [FIX 2] Removed 'else' branch because Stmt is a sealed class
-        // and we are handling all defined subclasses (Expression, Print, Var, Block).
         when (stmt) {
             is Stmt.Expression -> evaluate(stmt.expression)
             is Stmt.Print -> {
@@ -72,8 +69,6 @@ class AevumEvaluator2 {
                 environment.assign(expr.name, value)
                 value
             }
-            // 'else -> null' is removed if Expr is sealed and all cases are covered.
-            // However, if you add new Expr types later, you might need to add them here.
         }
     }
 
@@ -95,8 +90,17 @@ class AevumEvaluator2 {
 
         return when (expr.operator.type) {
             PLUS -> {
-                if (left is Double && right is Double) return left + right
-                if (left is String && right is String) return left + right
+                // If both are numbers, add them
+                if (left is Double && right is Double) {
+                    return left + right
+                }
+
+                // [FIX] If EITHER is a string, concatenate them as strings
+                // We use stringify() to ensure nil/numbers are formatted correctly
+                if (left is String || right is String) {
+                    return stringify(left) + stringify(right)
+                }
+
                 throw RuntimeErrorHandler.report(expr.operator, "Operands must be two numbers or two strings.")
             }
             MINUS -> {
@@ -150,7 +154,6 @@ class AevumEvaluator2 {
         if (obj == null) return "nil"
         if (obj is Double) {
             val text = obj.toString()
-            // [FIX 3 & 4] Use removeSuffix instead of substring for safety and clarity
             if (text.endsWith(".0")) {
                 return text.removeSuffix(".0")
             }
