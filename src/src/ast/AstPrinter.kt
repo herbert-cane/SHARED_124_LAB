@@ -37,6 +37,7 @@ class AstPrinter {
                 // Variable references: output the variable name
                 // Example: "x" for variable x
                 is Expr.Variable -> expr.name.lexeme
+                is Expr.Assign -> TODO()
             }
         } else {
             // Handle null expressions (typically from parsing errors)

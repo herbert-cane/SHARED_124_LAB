@@ -73,4 +73,7 @@ sealed class Expr {
      * @property name The identifier token containing the variable name
      */
     data class Variable(val name: Token) : Expr()
+
+    // [Lab 4]: Variable Assignment class
+    data class Assign(val name: Token, val value: Expr) : Expr()
 }

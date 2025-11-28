@@ -2,7 +2,6 @@ package src.aevumEvaluator
 
 import src.ast.Expr
 import src.token.Token
-import src.tokenType.TokenType
 import src.tokenType.TokenType.*
 
 class AevumEvaluator {
@@ -39,75 +38,39 @@ class AevumEvaluator {
 
         return when (expr.operator.type) {
             PLUS -> {
-                when (leftOperand) {
-                    is Double if rightOperand is Double -> {
-                        leftOperand + rightOperand
-                    }
-
-                    is String if rightOperand is String -> {
-                        leftOperand + rightOperand
-                    }
-
-                    else -> {
-                        throw RuntimeErrorHandler.report(
-                            expr.operator,
-                            "Operands must be two numbers or two strings."
-                        )
-                    }
+                if (leftOperand is Double && rightOperand is Double) {
+                    return leftOperand + rightOperand
                 }
+
+                if (leftOperand is String && rightOperand is String) {
+                    return leftOperand + rightOperand
+                }
+
+                throw RuntimeErrorHandler.report(
+                    expr.operator,
+                    "Operands must be two numbers or two strings."
+                )
             }
 
             MINUS -> {
                 checkBinaryOperands(expr.operator, leftOperand, rightOperand)
-                val leftVal = leftOperand as? Double
-                    ?: throw RuntimeErrorHandler.report(
-                        expr.operator,
-                        "Operands must be two numbers."
-                    )
-
-                val rightVal = rightOperand as? Double
-                    ?: throw RuntimeErrorHandler.report(
-                        expr.operator,
-                        "Operands must be two numbers."
-                    )
-
+                val leftVal = leftOperand as Double
+                val rightVal = rightOperand as Double
                 leftVal - rightVal
             }
 
             STAR -> {
-                val leftVal = leftOperand as? Double
-                    ?: throw RuntimeErrorHandler.report(
-                        expr.operator,
-                        "Operands must be two numbers."
-                    )
-
-                val rightVal = rightOperand as? Double
-                    ?: throw RuntimeErrorHandler.report(
-                        expr.operator,
-                        "Operands must be two numbers."
-                    )
-
-                leftVal * rightVal
+                checkBinaryOperands(expr.operator, leftOperand, rightOperand)
+                (leftOperand as Double) * (rightOperand as Double)
             }
 
             SLASH -> {
-                val leftVal = leftOperand as? Double
-                    ?: throw RuntimeErrorHandler.report(
-                        expr.operator,
-                        "Operands must be two numbers"
-                    )
-
-                val rightVal = rightOperand as? Double
-                    ?: throw RuntimeErrorHandler.report(
-                        expr.operator,
-                        "Operands must be two numbers"
-                    )
-
+                checkBinaryOperands(expr.operator, leftOperand, rightOperand)
+                val rightVal = rightOperand as Double
                 if (rightVal == 0.0) {
                     throw RuntimeErrorHandler.report(expr.operator, "Division by zero.")
                 }
-
-                leftVal / rightVal
+                (leftOperand as Double) / rightVal
             }
 
             GREATER -> compareNumbers(expr.operator, leftOperand, rightOperand) { a, b -> a > b }

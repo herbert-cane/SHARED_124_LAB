@@ -78,6 +78,11 @@ class AevumScanner {
         }
 
         tokens.add(emitToken(TokenType.EOF, "", null, lineNumber))
+        // Remove redundant tokens woohoo
+        tokens.filter{
+            it.type != TokenType.EOF &&
+                    !it.lexeme.isBlank()
+        }
         return tokens
     }
 

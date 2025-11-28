@@ -27,20 +27,8 @@ fun main() {
 
         // Scan the line into tokens
         val tokens: List<Token> = scanner.scanLine(line, lineNumber)
-
-        // Filter out EOF for display and check if we have any meaningful tokens
-        val meaningfulTokens = tokens.filter {
-            it.type != src.tokenType.TokenType.EOF &&
-                    !it.lexeme.isBlank()
-        }
-
-        // Print tokens only if we have meaningful content (not just comments)
-        if (meaningfulTokens.isNotEmpty()) {
-            meaningfulTokens.forEach { println(it) }
-        }
-
         // Parse the tokens into an AST - but only if we have meaningful tokens
-        if (meaningfulTokens.isNotEmpty()) {
+        if (tokens.isNotEmpty()) {
             val parser = AevumParser(tokens)
 
             try {
