@@ -1,5 +1,5 @@
 // File: src/environment/Environment.kt
-package src.environment
+package src.aevumEnvironment
 
 import src.aevumEvaluator.RuntimeErrorHandler
 import src.token.Token

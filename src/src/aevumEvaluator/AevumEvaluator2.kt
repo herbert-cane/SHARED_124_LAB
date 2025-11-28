@@ -2,8 +2,7 @@ package src.aevumEvaluator
 
 import src.ast.Expr
 import src.ast.Stmt
-import src.environment.Environment
-import src.token.Token
+import src.aevumEnvironment.Environment
 import src.tokenType.TokenType.*
 
 class AevumEvaluator2 {
@@ -16,7 +15,7 @@ class AevumEvaluator2 {
             for (statement in statements) {
                 execute(statement)
             }
-        } catch (error: RuntimeErrorHandler.RuntimeError) {
+        } catch (_: RuntimeErrorHandler.RuntimeError) {
             // The RuntimeErrorHandler.report() method already printed the error message
             // before throwing the exception. We just catch it here to stop execution.
         }
@@ -28,7 +27,8 @@ class AevumEvaluator2 {
             is Stmt.Expression -> evaluate(stmt.expression)
             is Stmt.Print -> {
                 val value = evaluate(stmt.expression)
-                println(stringify(value))
+                // [Use Helper]
+                println(EvaluatorUtils.stringify(value))
             }
             is Stmt.Var -> {
                 var value: Any? = null
@@ -76,10 +76,11 @@ class AevumEvaluator2 {
         val right = evaluate(expr.right)
         return when (expr.operator.type) {
             MINUS -> {
-                checkNumberOperand(expr.operator, right)
+                // [Use Helper]
+                EvaluatorUtils.checkNumberOperand(expr.operator, right)
                 -(right as Double)
             }
-            NOT -> !isTruthy(right)
+            NOT -> !EvaluatorUtils.isTruthy(right) // [Use Helper]
             else -> null
         }
     }
@@ -95,70 +96,47 @@ class AevumEvaluator2 {
                     return left + right
                 }
 
-                // [FIX] If EITHER is a string, concatenate them as strings
-                // We use stringify() to ensure nil/numbers are formatted correctly
+                // If EITHER is a string, concatenate them as strings
                 if (left is String || right is String) {
-                    return stringify(left) + stringify(right)
+                    // [Use Helper]
+                    return EvaluatorUtils.stringify(left) + EvaluatorUtils.stringify(right)
                 }
 
                 throw RuntimeErrorHandler.report(expr.operator, "Operands must be two numbers or two strings.")
             }
             MINUS -> {
-                checkNumberOperands(expr.operator, left, right)
+                EvaluatorUtils.checkNumberOperands(expr.operator, left, right)
                 (left as Double) - (right as Double)
             }
             STAR -> {
-                checkNumberOperands(expr.operator, left, right)
+                EvaluatorUtils.checkNumberOperands(expr.operator, left, right)
                 (left as Double) * (right as Double)
             }
             SLASH -> {
-                checkNumberOperands(expr.operator, left, right)
+                EvaluatorUtils.checkNumberOperands(expr.operator, left, right)
                 val r = (right as Double)
                 if (r == 0.0) throw RuntimeErrorHandler.report(expr.operator, "Division by zero.")
                 (left as Double) / r
             }
-            GREATER -> { checkNumberOperands(expr.operator, left, right); (left as Double) > (right as Double) }
-            GREATER_EQUAL -> { checkNumberOperands(expr.operator, left, right); (left as Double) >= (right as Double) }
-            LESS -> { checkNumberOperands(expr.operator, left, right); (left as Double) < (right as Double) }
-            LESS_EQUAL -> { checkNumberOperands(expr.operator, left, right); (left as Double) <= (right as Double) }
-            EQUAL_EQUAL -> isEqual(left, right)
-            NOT_EQUAL -> !isEqual(left, right)
+            GREATER -> {
+                EvaluatorUtils.checkNumberOperands(expr.operator, left, right)
+                (left as Double) > (right as Double)
+            }
+            GREATER_EQUAL -> {
+                EvaluatorUtils.checkNumberOperands(expr.operator, left, right)
+                (left as Double) >= (right as Double)
+            }
+            LESS -> {
+                EvaluatorUtils.checkNumberOperands(expr.operator, left, right)
+                (left as Double) < (right as Double)
+            }
+            LESS_EQUAL -> {
+                EvaluatorUtils.checkNumberOperands(expr.operator, left, right)
+                (left as Double) <= (right as Double)
+            }
+            EQUAL_EQUAL -> EvaluatorUtils.isEqual(left, right)
+            NOT_EQUAL -> !EvaluatorUtils.isEqual(left, right)
             else -> null
         }
-    }
-
-    // Helpers
-    private fun checkNumberOperand(operator: Token, operand: Any?) {
-        if (operand is Double) return
-        throw RuntimeErrorHandler.report(operator, "Operand must be a number.")
-    }
-
-    private fun checkNumberOperands(operator: Token, left: Any?, right: Any?) {
-        if (left is Double && right is Double) return
-        throw RuntimeErrorHandler.report(operator, "Operands must be numbers.")
-    }
-
-    private fun isTruthy(obj: Any?): Boolean {
-        if (obj == null) return false
-        if (obj is Boolean) return obj
-        return true
-    }
-
-    private fun isEqual(a: Any?, b: Any?): Boolean {
-        if (a == null && b == null) return true
-        if (a == null) return false
-        return a == b
-    }
-
-    private fun stringify(obj: Any?): String {
-        if (obj == null) return "nil"
-        if (obj is Double) {
-            val text = obj.toString()
-            if (text.endsWith(".0")) {
-                return text.removeSuffix(".0")
-            }
-            return text
-        }
-        return obj.toString()
     }
 }

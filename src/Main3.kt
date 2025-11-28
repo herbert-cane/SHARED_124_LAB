@@ -42,7 +42,7 @@ fun main() {
                     try {
                         val result = evaluator.evaluate(expression)
                         println(stringify(result))
-                    } catch (e: RuntimeErrorHandler.RuntimeError) {
+                    } catch (_: RuntimeErrorHandler.RuntimeError) {
                         // The error message is already printed inside
                         // RuntimeErrorHandler.report(), so we just catch it here
                         // to prevent the app from crashing.

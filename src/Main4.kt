@@ -35,7 +35,6 @@ object MainLab4 {
     }
 
     // REPL Mode
-// REPL Mode
     private fun runPrompt() {
         val input = InputScanner(System.`in`)
         println("Aevum REPL (Lab 4). Type 'exit' to quit.")
@@ -92,7 +91,7 @@ object MainLab4 {
                 // 3. Interpret Statements
                 interpreter.interpret(statements)
 
-            } catch (e: ParserErrorHandler.ParseError) {
+            } catch (_: ParserErrorHandler.ParseError) {
                 // ParserErrorHandler prints the message, we just catch to reset
             } catch (e: Exception) {
                 println("Error: ${e.message}")
