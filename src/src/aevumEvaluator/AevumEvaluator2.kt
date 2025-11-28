@@ -21,21 +21,19 @@ class AevumEvaluator2 {
 
     private fun execute(stmt: Stmt) {
         when (stmt) {
-            // [NEW] The Sequence Logic (Traversing the tree)
+            // The Sequence Logic (Traversing the tree)
             is Stmt.Sequence -> {
                 execute(stmt.first) // Execute Left Child
                 execute(stmt.next)  // Execute Right Child
             }
 
-            // [CHANGE] Program and Block now just unwrap the body
+            // Program and Block now just unwrap the body
             is Stmt.Program -> if (stmt.body != null) execute(stmt.body)
             is Stmt.Block -> {
                 if (stmt.body != null) {
                     executeBlock(stmt.body, Environment(environment))
                 }
             }
-
-            // ... Existing logic ...
             is Stmt.Expression -> evaluate(stmt.expression)
             is Stmt.Print -> {
                 val value = evaluate(stmt.expression)
@@ -61,8 +59,6 @@ class AevumEvaluator2 {
             this.environment = previous
         }
     }
-
-    // ... (Evaluate methods and Helpers remain the same) ...
     private fun evaluate(expr: Expr): Any? {
         return when (expr) {
             is Expr.Literal -> expr.value
