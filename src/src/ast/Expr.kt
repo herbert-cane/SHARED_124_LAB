@@ -74,6 +74,15 @@ sealed class Expr {
      */
     data class Variable(val name: Token) : Expr()
 
-    // [Lab 4]: Variable Assignment class
+    // ====== [Lab 4]: Variable Assignment class ======
     data class Assign(val name: Token, val value: Expr) : Expr()
+
+
+    // ====== [Lab 5]: Logical expression & Function classes ======
+
+    // Logical expression for AND, OR
+    data class Logical(val left: Expr, val operator: Token, val right: Expr) : Expr()
+
+    // Function
+    data class FunctionCall(val callee: Expr, val paren: Token, val arguments: Expr?) : Expr()
 }

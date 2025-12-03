@@ -21,4 +21,14 @@ sealed class Stmt {
     data class Print(val expression: Expr) : Stmt()
     data class Expression(val expression: Expr) : Stmt()
     data class Var(val name: Token, val initializer: Expr?) : Stmt()
+
+    // [Lab 5]
+    // Control Flow
+    data class If(val condition: Expr, val thenBranch: Stmt, val elseBranch: Stmt?) : Stmt()
+    data class While(val condition: Expr, val body: Stmt) : Stmt()
+    data class For(val initializer: Stmt?, val condition: Expr?, val updateExpression: Expr?, val body: Stmt) : Stmt()
+
+    // Functions
+    data class Function(val name: Token, val parameters: Expr?, val body: Stmt) : Stmt()
+    data class Return(val keyword: Token, val value: Expr?) : Stmt()
 }
