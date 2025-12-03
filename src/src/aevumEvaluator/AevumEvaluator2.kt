@@ -50,7 +50,7 @@ class AevumEvaluator2 {
     }
 
     // Updated Block Execution
-    private fun executeBlock(body: Stmt, environment: Environment) {
+    internal fun executeBlock(body: Stmt, environment: Environment) {
         val previous = this.environment
         try {
             this.environment = environment

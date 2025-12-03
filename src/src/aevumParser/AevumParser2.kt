@@ -50,11 +50,47 @@ class AevumParser2(private val tokens: List<Token>) {
 
     private fun declaration(): Stmt? {
         return try {
-            if (utils.match(VAR)) varDeclaration() else statement()
+            if (utils.match(FUN)) return function("function")
+            if (utils.match(VAR)) return varDeclaration()
+
+            return statement()
+
         } catch (error: ParserErrorHandler.ParseError) {
             synchronize()
             null
         }
+    }
+
+    private fun function(declarationType: String) : Stmt {
+        val name = utils.consume(IDENTIFIER, "Except $declarationType name.")
+        utils.consume(LEFT_PAREN, "Expect '(' after $declarationType name.")
+
+        // recursive expression tree for parameters
+        var parameters: Expr? = null
+        if (!utils.check(RIGHT_PAREN)) {
+            parameters = parseParameterList()
+        }
+
+        utils.consume(RIGHT_PAREN, "Expect ')' after parameters.")
+        utils.consume(LEFT_BRACE, "Expect '}' before $declarationType body.")
+
+        val body = block()  // reuse block parsing
+
+        return Stmt.Function(name, parameters, body)
+    }
+
+    // [Lab 5] Helper to parse parameters recursively
+    private fun parseParameterList() : Expr {
+        val parameterName = utils.consume(IDENTIFIER, "Expect parameter name.")
+        val head = Expr.Variable(parameterName)
+
+        if (utils.match(COMMA)) {
+            val tail = parseParameterList()
+
+            return Expr.Binary(head, utils.previous(), tail)
+        }
+
+        return head
     }
 
     private fun varDeclaration(): Stmt {
@@ -68,9 +104,82 @@ class AevumParser2(private val tokens: List<Token>) {
     }
 
     private fun statement(): Stmt {
+        if (utils.match(FOR)) return forStatement()
+        if (utils.match(WHILE)) return whileStatement()
+        if (utils.match(RETURN)) return returnStatement()
+        if (utils.match(IF)) return ifStatement()
         if (utils.match(PRINT)) return printStatement()
         if (utils.match(LEFT_BRACE)) return block()
         return expressionStatement()
+    }
+    // [Lab 5] For Statement
+    private fun forStatement() : Stmt {
+        utils.consume(LEFT_PAREN, "Expect '(' after 'for'.")
+
+        // Initializer
+        var initializer : Stmt?
+        if (utils.match(SEMICOLON)) {
+            initializer = null
+
+        } else if (utils.match(VAR)) {
+            initializer = varDeclaration()
+
+        } else {
+            initializer = expressionStatement()
+        }
+
+        // Loop condition
+        var condition : Expr? = null
+        if (!utils.check(SEMICOLON)) {
+            condition = expression()
+        }
+        utils.consume(SEMICOLON, "Expect ';' after loop condition.")
+
+        // Update expression
+        var updateExpr : Expr? = null
+        if(utils.match(RIGHT_PAREN)) {
+            updateExpr = expression()
+        }
+        utils.consume(RIGHT_PAREN, "Expect ')' after for clause.")
+
+        val body = statement()
+
+        return Stmt.For(initializer, condition, updateExpr, body)
+    }
+    // [Lab 5] While Statement
+    private fun whileStatement() : Stmt {
+        utils.consume(LEFT_PAREN, "Expect '(' after 'while'.")
+        val condition = expression()
+        utils.consume(RIGHT_PAREN, "Expect ')' after condition.")
+        val body = statement()
+
+        return Stmt.While(condition, body)
+    }
+
+    // [Lab 5] If Statement
+    private fun ifStatement() : Stmt {
+        utils.consume(LEFT_PAREN, "Expect '(' after 'if'.")
+        val condition = expression()
+        utils.consume(RIGHT_PAREN, "Expect ')' after if condition.")
+
+        val thenBranch = statement()
+        var elseBranch: Stmt? = null
+
+        if (utils.match(ELSE)) {
+            elseBranch = statement()
+        }
+
+        return Stmt.If(condition, thenBranch, elseBranch)
+    }
+    // [Lab 5] Return Statement
+    private fun returnStatement() : Stmt {
+        val keyword = utils.previous()
+        var value : Expr? = null
+        if (!utils.check(SEMICOLON)) {
+            value = expression()
+        }
+        utils.consume(SEMICOLON, "Expect ';' after return value.")
+        return Stmt.Return(keyword, value)
     }
 
     private fun printStatement(): Stmt {
@@ -79,7 +188,7 @@ class AevumParser2(private val tokens: List<Token>) {
         return Stmt.Print(value)
     }
 
-    // [CHANGE] Block now returns a Tree of Stmts
+    // [CHANGE] Block now returns a Tree of Statements
     private fun block(): Stmt {
         val body = parseBlockRecursively()
         utils.consume(RIGHT_BRACE, "Expect '}' after block.")
@@ -119,7 +228,7 @@ class AevumParser2(private val tokens: List<Token>) {
     }
 
     private fun assignment(): Expr {
-        val expr = equality()
+        val expr = or()
 
         if (utils.match(EQUAL)) {
             val equals = utils.previous()
@@ -133,6 +242,63 @@ class AevumParser2(private val tokens: List<Token>) {
         }
 
         return expr
+    }
+
+    // [Lab 5] Logical OR
+    private fun or() : Expr {
+        var expr = and()
+        while (utils.match(OR)) {
+            val operator = utils.previous()
+            val right = and()
+            expr = Expr.Logical(expr, operator, right)
+        }
+        return expr
+    }
+
+    // [Lab 5] Logical AND
+    private fun and(): Expr {
+        var expr = equality()
+        while (utils.match(AND)) {
+            val operator = utils.previous()
+            val right = equality()
+            expr = Expr.Logical(expr, operator, right)
+        }
+        return expr
+    }
+
+    // [Lab 5] Function Call
+    private fun call(): Expr {
+        var expr = primary()
+        while (true) {
+            // If we see '(', it's a function call
+            if (utils.match(LEFT_PAREN)) {
+                expr = finishFunctionCall(expr)
+            } else {
+                break
+            }
+        }
+        return expr
+    }
+
+    // [Lab 5] Helper to parse arguments recursively
+    private fun finishFunctionCall(callee: Expr): Expr {
+        var arguments: Expr? = null
+        if (!utils.check(RIGHT_PAREN)) {
+            arguments = parseArgumentList()
+        }
+        val paren = utils.consume(RIGHT_PAREN, "Expect ')' after arguments.")
+        return Expr.FunctionCall(callee, paren, arguments)
+    }
+
+    // [Lab 5] Recursive helper for arguments
+    private fun parseArgumentList(): Expr {
+        val head = expression()
+        if (utils.match(COMMA)) {
+            val operator = utils.previous()
+            val tail = parseArgumentList()
+            return Expr.Binary(head, operator, tail)
+        }
+        return head
     }
 
     private fun equality(): Expr {
