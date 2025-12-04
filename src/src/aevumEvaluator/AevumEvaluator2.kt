@@ -3,24 +3,63 @@ package src.aevumEvaluator
 import src.ast.Expr
 import src.ast.Stmt
 import src.aevumEnvironment.Environment
+import src.aevumFunctions.AevumFunction
+import src.aevumFunctions.Return
+import src.aevumFunctions.AevumCallable
 import src.tokenType.TokenType.*
 
 class AevumEvaluator2 {
-    private var environment = Environment()
 
+    // The global environment (holds native functions)
+    private val globals = Environment()
+    // The current environment (changes as we enter scopes)
+    private var environment = globals
+
+    init {
+        // === [Lab 5] Define native functions ===
+        // Example: clock() returns current time in seconds
+        //globals.define("clock", AevumClock())
+    }
     // Accept the Root Program Node
     fun interpret(program: Stmt.Program) {
         try {
             if (program.body != null) {
                 execute(program.body)
             }
-        } catch (error: RuntimeErrorHandler.RuntimeError) {
+        } catch (_: RuntimeErrorHandler.RuntimeError) {
             // catch logic
         }
     }
 
     private fun execute(stmt: Stmt) {
         when (stmt) {
+            // === [Lab 5] Control Flow ===
+            is Stmt.If -> {
+                if (EvaluatorUtils.isTruthy(evaluate(stmt.condition))) {
+                    execute(stmt.thenBranch)
+                } else if (stmt.elseBranch != null) {
+                    execute(stmt.elseBranch)
+                }
+            }
+            is Stmt.While -> {
+                while (EvaluatorUtils.isTruthy(evaluate(stmt.condition))) {
+                    execute(stmt.body)
+                }
+            }
+
+            // === [Lab 5] Functions ===
+            is Stmt.Function -> {
+                // Capture the current environment (Closure)
+                val function = AevumFunction(stmt, environment)
+                environment.define(stmt.name.lexeme, function)
+            }
+            is Stmt.Return -> {
+                var value: Any? = null
+                if (stmt.value != null) value = evaluate(stmt.value)
+                // Throw exception to unwind stack
+                throw Return(value)
+            }
+
             // The Sequence Logic (Traversing the tree)
             is Stmt.Sequence -> {
                 execute(stmt.first) // Execute Left Child
@@ -61,6 +100,34 @@ class AevumEvaluator2 {
     }
     private fun evaluate(expr: Expr): Any? {
         return when (expr) {
+            // === [Lab 5] Logic & Calls ===
+            is Expr.Logical -> {
+                val left = evaluate(expr.left)
+
+                // Short-circuiting Logic
+                if (expr.operator.type == OR) {
+                    if (EvaluatorUtils.isTruthy(left)) return left
+                } else {
+                    // AND
+                    if (!EvaluatorUtils.isTruthy(left)) return left
+                }
+
+                return evaluate(expr.right)
+            }
+            is Expr.FunctionCall -> {
+                val callee = evaluate(expr.callee)
+                val arguments = evaluateArguments(expr.arguments)
+
+                if (callee !is AevumCallable) {
+                    throw RuntimeErrorHandler.report(expr.paren, "Can only call functions and classes.")
+                }
+
+                if (arguments.size != callee.arity()) {
+                    throw RuntimeErrorHandler.report(expr.paren, "Expected ${callee.arity()} arguments but got ${arguments.size}.")
+                }
+
+                callee.call(this, arguments)
+            }
             is Expr.Literal -> expr.value
             is Expr.Grouping -> evaluate(expr.expression)
             is Expr.Unary -> evaluateUnary(expr)
@@ -71,6 +138,27 @@ class AevumEvaluator2 {
                 environment.assign(expr.name, value)
                 value
             }
+        }
+    }
+
+    // === [Lab 5] Helper to flatten Argument Tree into a List ===
+    // Needed because AevumCallable expects a List<Any?>, but our AST uses a Tree
+    private fun evaluateArguments(args: Expr?): List<Any?> {
+        val list = mutableListOf<Any?>()
+        flattenArgs(args, list)
+        return list
+    }
+
+    private fun flattenArgs(expr: Expr?, list: MutableList<Any?>) {
+        if (expr == null) return
+
+        if (expr is Expr.Binary) {
+            // It's a tree: Left is value, Right is next node
+            list.add(evaluate(expr.left))
+            flattenArgs(expr.right, list)
+        } else {
+            // It's a single leaf
+            list.add(evaluate(expr))
         }
     }
 

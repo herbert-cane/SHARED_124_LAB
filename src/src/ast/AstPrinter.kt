@@ -37,7 +37,21 @@ class AstPrinter {
                 // Variable references: output the variable name
                 // Example: "x" for variable x
                 is Expr.Variable -> expr.name.lexeme
-                is Expr.Assign -> TODO()
+
+                // [Lab 4] Assignment: (= name value)
+                is Expr.Assign -> parenthesize("= ${expr.name.lexeme}", expr.value)
+
+                // [Lab 5] Logical: (or left right)
+                is Expr.Logical -> parenthesize(expr.operator.lexeme, expr.left, expr.right)
+
+                // [Lab 5] Function Call: (call functionName argumentsTree)
+                is Expr.FunctionCall -> {
+                    if (expr.arguments != null) {
+                        parenthesize("call", expr.callee, expr.arguments)
+                    } else {
+                        parenthesize("call", expr.callee)
+                    }
+                }
             }
         } else {
             // Handle null expressions (typically from parsing errors)
