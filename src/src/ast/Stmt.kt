@@ -3,6 +3,13 @@ package src.ast
 import src.token.Token
 
 sealed class Stmt {
+
+    // === Basic Statements ===
+    data class Print(val expression: Expr) : Stmt()
+    data class Expression(val expression: Expr) : Stmt()
+    data class Var(val name: Token, val initializer: Expr?) : Stmt()
+
+    // === [Lab 4]: Tree Structures ===
     // The Root Node. It holds the top of the tree.
     data class Program(val body: Stmt?) : Stmt()
 
@@ -13,22 +20,17 @@ sealed class Stmt {
     /** Now, nodes look like this:
      *  [Sequence]
      *  [Stmt A]    [Sequence]
-     *              [Stmt B][Stmt B]
+     *              [Stmt B][Stmt C]
      */
     // Block holds a single Stmt (which might be a Sequence tree)
     data class Block(val body: Stmt?) : Stmt()
 
-    data class Print(val expression: Expr) : Stmt()
-    data class Expression(val expression: Expr) : Stmt()
-    data class Var(val name: Token, val initializer: Expr?) : Stmt()
-
-    // [Lab 5]
-    // Control Flow
+    // === [Lab 5] Control Flow ===
     data class If(val condition: Expr, val thenBranch: Stmt, val elseBranch: Stmt?) : Stmt()
     data class While(val condition: Expr, val body: Stmt) : Stmt()
-    data class For(val initializer: Stmt?, val condition: Expr?, val updateExpression: Expr?, val body: Stmt) : Stmt()
+    // data class For(val initializer: Stmt?, val condition: Expr?, val updateExpression: Expr?, val body: Stmt) : Stmt()
 
-    // Functions
+    // === [Lab 5] Functions ===
     data class Function(val name: Token, val parameters: Expr?, val body: Stmt) : Stmt()
     data class Return(val keyword: Token, val value: Expr?) : Stmt()
 }

@@ -6,7 +6,7 @@ import src.error.ParserErrorHandler
 import src.token.Token
 import src.tokenType.TokenType.*
 
-class AevumParser2(private val tokens: List<Token>) {
+class AevumParser2(tokens: List<Token>) {
     private val utils = ParserUtilities(tokens)
 
     // -------------------------------------------------------------------------
@@ -29,17 +29,13 @@ class AevumParser2(private val tokens: List<Token>) {
             return null
         }
 
-        val first = declaration()
+        val first = declaration() ?: return parseStatementsRecursively()
 
         // If the current declaration failed, try to recover/continue
-        if (first == null) {
-            return parseStatementsRecursively()
-        }
 
         val rest = parseStatementsRecursively() ?: return first
 
         // If there is no code after this, just return the single statement
-
         // Connect them: Sequence(Left, Right)
         return Stmt.Sequence(first, rest)
     }
@@ -55,8 +51,8 @@ class AevumParser2(private val tokens: List<Token>) {
 
             return statement()
 
-        } catch (error: ParserErrorHandler.ParseError) {
-            synchronize()
+        } catch (_: ParserErrorHandler.ParseError) {
+            utils.synchronize()
             null
         }
     }
@@ -79,7 +75,7 @@ class AevumParser2(private val tokens: List<Token>) {
         return Stmt.Function(name, parameters, body)
     }
 
-    // [Lab 5] Helper to parse parameters recursively
+    // === [Lab 5] Helper to parse parameters recursively ===
     private fun parseParameterList() : Expr {
         val parameterName = utils.consume(IDENTIFIER, "Expect parameter name.")
         val head = Expr.Variable(parameterName)
@@ -113,40 +109,72 @@ class AevumParser2(private val tokens: List<Token>) {
         return expressionStatement()
     }
     // [Lab 5] For Statement
-    private fun forStatement() : Stmt {
+    private fun forStatement(): Stmt {
         utils.consume(LEFT_PAREN, "Expect '(' after 'for'.")
 
-        // Initializer
-        var initializer : Stmt?
-        if (utils.match(SEMICOLON)) {
-            initializer = null
-
+        // 1. Parse Initializer
+        // (var i = 0;)
+        val initializer = if (utils.match(SEMICOLON)) {
+            null
         } else if (utils.match(VAR)) {
-            initializer = varDeclaration()
-
+            varDeclaration()
         } else {
-            initializer = expressionStatement()
+            expressionStatement()
         }
 
-        // Loop condition
-        var condition : Expr? = null
+        // 2. Parse Condition
+        // (i < 10;)
+        var condition: Expr? = null
         if (!utils.check(SEMICOLON)) {
             condition = expression()
         }
         utils.consume(SEMICOLON, "Expect ';' after loop condition.")
 
-        // Update expression
-        var updateExpr : Expr? = null
-        if(utils.match(RIGHT_PAREN)) {
-            updateExpr = expression()
+        // 3. Parse Increment
+        // (i = i + 1)
+        var increment: Expr? = null
+        // Check if next token is NOT ')', then parse.
+        if (!utils.check(RIGHT_PAREN)) {
+            increment = expression()
         }
-        utils.consume(RIGHT_PAREN, "Expect ')' after for clause.")
+        utils.consume(RIGHT_PAREN, "Expect ')' after for clauses.")
 
-        val body = statement()
+        // 4. Parse Body
+        var body = statement()
 
-        return Stmt.For(initializer, condition, updateExpr, body)
+        // --- DESUGARING LOGIC ---
+
+        // A. Handle Increment
+        // If there is an increment, it executes after the body in every iteration.
+        // We create a sequence: { body; increment; }
+        if (increment != null) {
+            body = Stmt.Sequence(
+                body,
+                Stmt.Expression(increment)
+            )
+        }
+
+        // B. Handle Condition
+        // If condition is null, it loops forever (true).
+        // while (condition) { body }
+        if (condition == null) {
+            condition = Expr.Literal(true)
+        }
+        body = Stmt.While(condition, body)
+
+        // C. Handle Initializer
+        // If there is an initializer, it runs once before the loop.
+        // { initializer; while(...) }
+        if (initializer != null) {
+            body = Stmt.Sequence(initializer, body)
+        }
+
+        // Wrap everything in a Block so the initializer variable (e.g. 'var i')
+        // is scoped locally to the loop and doesn't leak out.
+        return Stmt.Block(body)
     }
-    // [Lab 5] While Statement
+
+    // === [Lab 5] While Statement ===
     private fun whileStatement() : Stmt {
         utils.consume(LEFT_PAREN, "Expect '(' after 'while'.")
         val condition = expression()
@@ -156,7 +184,7 @@ class AevumParser2(private val tokens: List<Token>) {
         return Stmt.While(condition, body)
     }
 
-    // [Lab 5] If Statement
+    // === [Lab 5] If Statement ===
     private fun ifStatement() : Stmt {
         utils.consume(LEFT_PAREN, "Expect '(' after 'if'.")
         val condition = expression()
@@ -171,7 +199,7 @@ class AevumParser2(private val tokens: List<Token>) {
 
         return Stmt.If(condition, thenBranch, elseBranch)
     }
-    // [Lab 5] Return Statement
+    // === [Lab 5] Return Statement ===
     private fun returnStatement() : Stmt {
         val keyword = utils.previous()
         var value : Expr? = null
@@ -188,7 +216,7 @@ class AevumParser2(private val tokens: List<Token>) {
         return Stmt.Print(value)
     }
 
-    // [CHANGE] Block now returns a Tree of Statements
+    // === [LAB 4] Block now returns a Tree of Statements ===
     private fun block(): Stmt {
         val body = parseBlockRecursively()
         utils.consume(RIGHT_BRACE, "Expect '}' after block.")
@@ -200,17 +228,9 @@ class AevumParser2(private val tokens: List<Token>) {
             return null
         }
 
-        val first = declaration()
+        val first = declaration() ?: return parseBlockRecursively()
 
-        if (first == null) {
-            return parseBlockRecursively()
-        }
-
-        val rest = parseBlockRecursively()
-
-        if (rest == null) {
-            return first
-        }
+        val rest = parseBlockRecursively() ?: return first
 
         return Stmt.Sequence(first, rest)
     }
@@ -221,8 +241,6 @@ class AevumParser2(private val tokens: List<Token>) {
         return Stmt.Expression(expr)
     }
 
-    // ... (All expression parsing and synchronize methods remain exactly the same) ...
-    // Copy them from your previous file.
     private fun expression(): Expr {
         return assignment()
     }
@@ -244,7 +262,7 @@ class AevumParser2(private val tokens: List<Token>) {
         return expr
     }
 
-    // [Lab 5] Logical OR
+    // === [Lab 5] Logical OR ===
     private fun or() : Expr {
         var expr = and()
         while (utils.match(OR)) {
@@ -255,7 +273,7 @@ class AevumParser2(private val tokens: List<Token>) {
         return expr
     }
 
-    // [Lab 5] Logical AND
+    // === [Lab 5] Logical AND ===
     private fun and(): Expr {
         var expr = equality()
         while (utils.match(AND)) {
@@ -266,7 +284,7 @@ class AevumParser2(private val tokens: List<Token>) {
         return expr
     }
 
-    // [Lab 5] Function Call
+    // === [Lab 5] Function Call ===
     private fun call(): Expr {
         var expr = primary()
         while (true) {
@@ -280,7 +298,7 @@ class AevumParser2(private val tokens: List<Token>) {
         return expr
     }
 
-    // [Lab 5] Helper to parse arguments recursively
+    // === [Lab 5] Helper to parse arguments recursively ===
     private fun finishFunctionCall(callee: Expr): Expr {
         var arguments: Expr? = null
         if (!utils.check(RIGHT_PAREN)) {
@@ -290,7 +308,7 @@ class AevumParser2(private val tokens: List<Token>) {
         return Expr.FunctionCall(callee, paren, arguments)
     }
 
-    // [Lab 5] Recursive helper for arguments
+    // === [Lab 5] Recursive helper for arguments ===
     private fun parseArgumentList(): Expr {
         val head = expression()
         if (utils.match(COMMA)) {
@@ -347,7 +365,7 @@ class AevumParser2(private val tokens: List<Token>) {
             val right = unary()
             return Expr.Unary(operator, right)
         }
-        return primary()
+        return call()
     }
 
     private fun primary(): Expr {
@@ -370,18 +388,5 @@ class AevumParser2(private val tokens: List<Token>) {
         }
 
         throw ParserErrorHandler.report(utils.peek(), "Expect expression.")
-    }
-
-    private fun synchronize() {
-        utils.advance()
-
-        while (!utils.isAtEnd()) {
-            if (utils.previous().type == SEMICOLON) return
-
-            when (utils.peek().type) {
-                CLASS, FUN, VAR, FOR, IF, WHILE, PRINT, RETURN -> return
-                else -> utils.advance()
-            }
-        }
     }
 }

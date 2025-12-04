@@ -3,6 +3,7 @@ package src.aevumParser
 import src.error.ParserErrorHandler
 import src.token.Token
 import src.tokenType.TokenType
+import src.tokenType.TokenType.*
 
 class ParserUtilities(private val tokens: List<Token>) {
     private var current = 0
@@ -32,9 +33,23 @@ class ParserUtilities(private val tokens: List<Token>) {
         return previous()
     }
 
-    fun isAtEnd(): Boolean = peek().type == TokenType.EOF
+    fun isAtEnd(): Boolean = peek().type == EOF
 
     fun peek(): Token = tokens[current]
 
     fun previous(): Token = tokens[current - 1]
+
+    // === [LAB 5] Synchronize Logic ===
+    fun synchronize() {
+        advance()
+
+        while (!isAtEnd()) {
+            if (previous().type == SEMICOLON) return
+
+            when (peek().type) {
+                CLASS, FUN, VAR, FOR, IF, WHILE, PRINT, RETURN -> return
+                else -> advance()
+            }
+        }
+    }
 }
