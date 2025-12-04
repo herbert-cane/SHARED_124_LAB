@@ -38,5 +38,13 @@ object EvaluatorUtils {
         return obj.toString()
     }
 
-
+    // Helper to count arguments in the nested Pair structure
+    // Pair(1, Pair(2, 3)) -> returns 3
+    fun countArgs(args: Any?): Int {
+        if (args == null) return 0
+        if (args is Pair<*, *>) {
+            return 1 + countArgs(args.second)
+        }
+        return 1
+    }
 }

@@ -18,7 +18,11 @@ class AevumEvaluator2 {
     init {
         // === [Lab 5] Define native functions ===
         // Example: clock() returns current time in seconds
-        //globals.define("clock", AevumClock())
+
+        // Aevum Native Functions
+        globals.define("speak", NativeSpeak())
+        globals.define("say", NativeSay())
+        globals.define("character", NativeCharacter())
     }
     // Accept the Root Program Node
     fun interpret(program: Stmt.Program) {
@@ -116,17 +120,22 @@ class AevumEvaluator2 {
             }
             is Expr.FunctionCall -> {
                 val callee = evaluate(expr.callee)
-                val arguments = evaluateArguments(expr.arguments)
+                val argumentTree = evaluateArgumentTree(expr.arguments)
 
                 if (callee !is AevumCallable) {
                     throw RuntimeErrorHandler.report(expr.paren, "Can only call functions and classes.")
                 }
 
-                if (arguments.size != callee.arity()) {
-                    throw RuntimeErrorHandler.report(expr.paren, "Expected ${callee.arity()} arguments but got ${arguments.size}.")
+                // === [Lab 5] Arity checking with clear error messages ===
+                val argCount = EvaluatorUtils.countArgs(argumentTree)
+                if (argCount != callee.arity()) {
+                    throw RuntimeErrorHandler.report(
+                        expr.paren,
+                        "Expected ${callee.arity()} arguments but got $argCount."
+                    )
                 }
 
-                callee.call(this, arguments)
+                callee.call(this, argumentTree)
             }
             is Expr.Literal -> expr.value
             is Expr.Grouping -> evaluate(expr.expression)
@@ -141,14 +150,20 @@ class AevumEvaluator2 {
         }
     }
 
-    // === [Lab 5] Helper to flatten Argument Tree into a List ===
-    // Needed because AevumCallable expects a List<Any?>, but our AST uses a Tree
-    private fun evaluateArguments(args: Expr?): List<Any?> {
-        val list = mutableListOf<Any?>()
-        flattenArgs(args, list)
-        return list
-    }
+    // === [Lab 5] Evaluating an Argument Tree (No listing) ===
+    private fun evaluateArgumentTree(expr: Expr?): Any? {
+        if (expr == null) return null
 
+        // If it's a Comma (List Separator), preserve the tree structure using Pairs
+        if (expr is Expr.Binary && expr.operator.type == COMMA) {
+            val leftVal = evaluate(expr.left)
+            val rightVal = evaluateArgumentTree(expr.right)
+            return Pair(leftVal, rightVal)
+        }
+
+        // It's a single leaf value
+        return evaluate(expr)
+    }
     private fun flattenArgs(expr: Expr?, list: MutableList<Any?>) {
         if (expr == null) return
 

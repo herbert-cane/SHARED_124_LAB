@@ -16,7 +16,8 @@ import src.aevumEnvironment.Environment
  */
 class AevumFunction(
     private val declaration: Stmt.Function, // The AST node (name, params, body)
-    private val closure: Environment        // The environment snapshot (Closure
+    // === [Lab 5] FI: Closures (capturing enclosing environment) ===
+    private val closure: Environment        // The environment snapshot (Closure)
 ) : AevumCallable {
 
     // === Arity Checking ===
@@ -40,12 +41,8 @@ class AevumFunction(
     override fun call(interpreter: AevumEvaluator2, arguments: Any?): Any? {
         val environment = Environment(closure)
 
-        // Convert the flat List of arguments into the nested Pair structure
-        // Example: [1, 2, 3] -> Pair(1, Pair(2, 3))
-        val argumentPairs = listToPair(arguments as List<Any?>, 0)
-
         // Use Pair-based binding logic
-        bindParameters(declaration.parameters, argumentPairs, environment)
+        bindParameters(declaration.parameters, arguments, environment)
 
         try {
             interpreter.executeBlock(declaration.body, environment)
@@ -80,7 +77,8 @@ class AevumFunction(
 
     /**
      * A helper function that converts a List into a nested Pair chain.
-     * This is needed because 'call' gives us a List, but 'bindParameters' wants Pairs.
+     * This is NOT needed anymore, but we keep it for future use
+     * in case 'call' gives us a List, but 'bindParameters' wants Pairs.
      */
     private fun listToPair(args: List<Any?>, index: Int): Any? {
         if (index >= args.size) return null
