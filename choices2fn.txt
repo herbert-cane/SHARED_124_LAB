@@ -1,0 +1,39 @@
+character("The Crossroads");
+speak("You stand at a fork in the road.");
+
+// 1. Present Options
+choice("Which way do you go?");
+option(1, "The Dark Forest (Dangerous)");
+option(2, "The Sunny Meadow (Safe)");
+
+// 2. Wait for Player Agency
+var selection = input();
+
+// 3. Branching Logic
+if (selection == "1") {
+    character("Dark Forest");
+    spawn("Enemy", "Spider");
+    speak("A giant spider drops from the trees!");
+
+    choice("Quick!");
+    option("a", "Attack");
+    option("b", "Run");
+
+    var fightAction = input();
+    if (fightAction == "a") {
+        speak("You slay the spider and find loot.");
+    } else {
+        speak("You ran away safely, but you are lost.");
+    }
+
+} else if (selection == "2") {
+    character("Sunny Meadow");
+    speak("Birds are singing. You find a healing potion.");
+    spawn("Item", "Potion");
+
+} else {
+    // Handling invalid input
+    speak("You stood still and nothing happened.");
+}
+
+speak("--- END SCENE ---");

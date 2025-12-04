@@ -1,6 +1,18 @@
+var greeting = "Hello";
+var name = "World";
+
+print greeting + ", " + name + "!";
+
 var x = 10;
+var y = 20;
+
 {
-    var x = "inner";
-    print x;
+    var x = 5;
+    print "Inner x: " + x;
+    print "Outer y: " + y;
 }
-print x;
+
+print "Outer x: " + x;
+
+x = x + y;
+print "x + y = " + x;

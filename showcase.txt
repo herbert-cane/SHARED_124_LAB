@@ -1,0 +1,81 @@
+// ==========================================
+// AEVUM LANGUAGE SHOWCASE
+// ==========================================
+// This program demonstrates the Turing-completeness of Aevum.
+// Since we haven't implemented the 'class' keyword yet,
+// we use CLOSURES to simulate RPG Objects (Actors).
+
+// 1. Define a "Class" using a Function and Closure
+// This function creates a character that remembers its own HP and Name.
+fun createCharacter(name, hp, atk) {
+
+    // Internal method to check status
+    fun isAlive() {
+        return hp > 0;
+    }
+
+    // Internal method to take damage
+    fun takeDamage(amount) {
+        hp = hp - amount;
+        if (hp < 0) hp = 0;
+        print name + " takes " + amount + " damage! (HP: " + hp + ")";
+    }
+
+    // Internal method to attack
+    fun attack(target) {
+        print name + " attacks " + target("getName", nil) + "!";
+        // Call the target's damage method
+        target("damage", atk);
+    }
+
+    // DISPATCHER: This handles "Method Calls"
+    // Since we don't have objects (obj.method), we use function calls: obj("method", arg)
+    fun dispatch(message, arg) {
+        if (message == "getName") return name;
+        if (message == "alive") return isAlive();
+        if (message == "attack") return attack(arg);
+        if (message == "damage") return takeDamage(arg);
+
+        print "Unknown action: " + message;
+    }
+
+    return dispatch;
+}
+
+// 2. Initialize Game State
+print "--- GAME START: THE DARK FOREST ---";
+
+// Create two "objects" using our closure factory
+var hero = createCharacter("Hero", 100, 15);
+var monster = createCharacter("Slime", 40, 5);
+
+print "A wild Slime appears!";
+print "";
+
+// 3. The Game Loop (Control Flow)
+var turn = 1;
+
+while (hero("alive", nil) and monster("alive", nil)) {
+    print "--- TURN " + turn + " ---";
+
+    // Hero Turn
+    hero("attack", monster);
+
+    // Monster Turn (only if still alive)
+    if (monster("alive", nil)) {
+        monster("attack", hero);
+    } else {
+        print "";
+        print "The monster disintegrates!";
+        print "VICTORY!";
+    }
+
+    print "";
+    turn = turn + 1;
+}
+
+if (hero("alive", nil) == false) {
+    print "GAME OVER...";
+}
+
+print "--- END OF DEMO ---";

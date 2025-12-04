@@ -1,0 +1,18 @@
+// Testing the RPG Native Functions
+
+character("Castle Gates");
+
+speak("The wind howls...");
+
+var hero = "Arthur";
+say(hero, "Open the gate!");
+
+say("Guard", "Who goes there?");
+
+if (hero == "Arthur") {
+    say("Guard", "Oh, it is the King! Open the gates!");
+    character("Castle Courtyard");
+    speak("The gates creak open.");
+} else {
+    speak("The guard ignores you.");
+}

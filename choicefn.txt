@@ -1,0 +1,12 @@
+character("Dungeon Entrance");
+
+spawn("Enemy", "Skeleton Warrior");
+speak("It blocks your path rattling its bones.");
+
+choice("How do you proceed?");
+option(1, "Draw Sword");
+option(2, "Cast Fireball");
+option(3, "Run Away");
+
+spawn("Loot", "Gold Pouch");
+speak("You also notice something shiny on the floor.");

@@ -3,9 +3,7 @@ package src.aevumEvaluator
 import src.ast.Expr
 import src.ast.Stmt
 import src.aevumEnvironment.Environment
-import src.aevumFunctions.AevumFunction
-import src.aevumFunctions.Return
-import src.aevumFunctions.AevumCallable
+import src.aevumFunctions.*
 import src.tokenType.TokenType.*
 
 class AevumEvaluator2 {
@@ -20,9 +18,17 @@ class AevumEvaluator2 {
         // Example: clock() returns current time in seconds
 
         // Aevum Native Functions
+        globals.define("input", NativeInput())
+
+        // Dialogue and Character Keywords
         globals.define("speak", NativeSpeak())
         globals.define("say", NativeSay())
         globals.define("character", NativeCharacter())
+
+        // Choices and Branching
+        globals.define("choice", NativeChoice())
+        globals.define("option", NativeOption())
+        globals.define("spawn", NativeSpawn())
     }
     // Accept the Root Program Node
     fun interpret(program: Stmt.Program) {

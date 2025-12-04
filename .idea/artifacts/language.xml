@@ -2,7 +2,7 @@
   <artifact type="jar" name="language">
     <output-path>$PROJECT_DIR$/out/artifacts/language</output-path>
     <root id="archive" name="SHARED_124_LAB.jar">
-      <element id="module-output" name="SHARED_124_LAB" />
+      <element id="module-output" name="test" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-stdlib/2.2.0/kotlin-stdlib-2.2.0.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/jetbrains/annotations/13.0/annotations-13.0.jar" path-in-jar="/" />
     </root>
