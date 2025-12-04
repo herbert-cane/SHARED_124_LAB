@@ -1,0 +1,15 @@
+// Demonstrate closures
+fun makePrinter(prefix) {
+  fun printMsg(message) {
+    print prefix + ": " + message;
+  }
+  return printMsg;
+}
+
+var errorPrinter = makePrinter("ERROR");
+var infoPrinter = makePrinter("INFO");
+
+errorPrinter("Something went wrong");
+infoPrinter("Program started");
+errorPrinter("Connection failed");
+infoPrinter("Done");

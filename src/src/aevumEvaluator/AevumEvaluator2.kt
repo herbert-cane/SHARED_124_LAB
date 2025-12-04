@@ -152,7 +152,9 @@ class AevumEvaluator2 {
     private fun flattenArgs(expr: Expr?, list: MutableList<Any?>) {
         if (expr == null) return
 
-        if (expr is Expr.Binary) {
+        // Arithmetic expressions (like n - 1) are Binary but lists
+        // We only treat it as a list if the operator is a COMMA
+        if (expr is Expr.Binary && expr.operator.type == COMMA) {
             // It's a tree: Left is value, Right is next node
             list.add(evaluate(expr.left))
             flattenArgs(expr.right, list)
