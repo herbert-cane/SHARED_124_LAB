@@ -29,6 +29,33 @@ class AevumEvaluator2 {
         globals.define("choice", NativeChoice())
         globals.define("option", NativeOption())
         globals.define("spawn", NativeSpawn())
+
+        // Game Flow
+        globals.define("start", NativeStart())
+        globals.define("continue", NativeContinue())
+        globals.define("restart", NativeRestart())
+        globals.define("endgame", NativeEndgame())
+
+        // Actions & Triggers
+        globals.define("action", NativeAction())
+        globals.define("trigger", NativeTrigger())
+        globals.define("win", NativeWin())
+        globals.define("lose", NativeLose())
+
+        // Inventory System
+        globals.define("add", NativeAdd())
+        globals.define("inventory", NativeInventory())
+        globals.define("use", NativeUse())
+        globals.define("item", NativeItem())
+
+        // Stats System
+        globals.define("setStat", NativeSetStat())
+        globals.define("modStat", NativeModStat())
+        globals.define("getStat", NativeGetStat())
+        globals.define("checkStats", NativeCheckStats())
+
+        // Auxiliary
+        globals.define("random", NativeRandom())
     }
     // Accept the Root Program Node
     fun interpret(program: Stmt.Program) {
@@ -253,3 +280,4 @@ class AevumEvaluator2 {
         }
     }
 }
+

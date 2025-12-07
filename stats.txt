@@ -1,0 +1,31 @@
+character("Training Grounds");
+
+// 1. Initialize Hero Stats
+speak("Initializing Hero...");
+setStat("Hero", "HP", 100);
+setStat("Hero", "ATK", 10);
+setStat("Hero", "DEF", 5);
+checkStats("Hero");
+
+// 2. Initialize Enemy
+spawn("Enemy", "Training Dummy");
+setStat("Dummy", "HP", 50);
+setStat("Dummy", "DEF", 0);
+
+// 3. Simulate Combat (Hero attacks Dummy)
+speak("Hero attacks Dummy!");
+var damage = getStat("Hero", "ATK");
+modStat("Dummy", "HP", 0 - damage); // Subtract damage
+
+// 4. Simulate Level Up (Growth)
+trigger("Level Up!");
+modStat("Hero", "HP", 10);  // Heal/Grow HP
+modStat("Hero", "ATK", 5);  // STR up
+checkStats("Hero");
+
+// 5. Simulate Equipment
+item("Iron Sword", "ATK +5");
+add("Iron Sword");
+speak("Hero equips Iron Sword.");
+modStat("Hero", "ATK", 5);
+checkStats("Hero");

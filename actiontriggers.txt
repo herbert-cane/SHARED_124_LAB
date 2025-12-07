@@ -1,0 +1,18 @@
+character("The Arena");
+spawn("Boss", "Minotaur");
+
+choice("The beast charges!");
+option(1, "Dodge and Counter");
+option(2, "Block with Shield");
+
+var move = input();
+
+if (move == "1") {
+    action("Dodge");
+    trigger("Critical Hit!");
+    win("The Minotaur falls!");
+} else {
+    action("Block");
+    trigger("Shield Shattered!");
+    lose("The Minotaur crushes you.");
+}

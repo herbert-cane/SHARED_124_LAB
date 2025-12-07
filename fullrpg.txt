@@ -1,0 +1,184 @@
+// ==========================================
+// AEVUM MINI-RPG: THE TOWER OF TRIALS
+// ==========================================
+
+start("The Tower of Trials");
+
+// --- 1. SETUP PLAYER ---
+character("Lobby");
+speak("Welcome, adventurer. Preparing your stats...");
+
+setStat("Hero", "HP", 50);
+setStat("Hero", "MAX_HP", 50);
+setStat("Hero", "ATK", 5);
+setStat("Hero", "DEF", 0);
+setStat("Hero", "EXP", 0);
+
+// Give starting gear
+add("Potion");
+add("Wooden Shield");
+
+// --- 2. MAIN GAME LOOP ---
+var playing = true;
+var floor = 1;
+
+while (playing) {
+    character("Floor " + floor);
+
+    // Status Header
+    var hp = getStat("Hero", "HP");
+    var max = getStat("Hero", "MAX_HP");
+    speak("Your Health: " + hp + "/" + max);
+
+    // Player Agency: Main Menu
+    choice("What will you do?");
+    option(1, "Explore (Fight)");
+    option(2, "Check Inventory / Use Item");
+    option(3, "Check Stats");
+    option(4, "Rest (Heal)");
+    option(5, "Quit");
+
+    var selection = input();
+
+    // --- CHOICE 1: FIGHT ---
+    if (selection == "1") {
+        spawn("Enemy", "Goblin");
+        var enemyHP = 20 + (floor * 5); // Enemies get stronger per floor
+        var enemyATK = 2 + floor;
+
+        setStat("Goblin", "HP", enemyHP);
+        setStat("Goblin", "ATK", enemyATK);
+
+        speak("A level " + floor + " Goblin appears!");
+
+// Combat Loop
+        var fighting = true;
+
+        while (fighting) {
+            print ""; // spacer
+
+            // [NEW] Show Enemy Status
+            var gHP = getStat("Goblin", "HP");
+            speak("Goblin HP: " + gHP);
+
+            choice("Combat Action");
+            option("a", "Attack");
+            option("b", "Run");
+
+            // Renamed variable to avoid shadowing 'action()' function
+            var playerMove = input();
+
+            if (playerMove == "a") {
+                // Hero Attacks
+                action("Attack");
+
+                // Random Damage Calculation
+                var baseAtk = getStat("Hero", "ATK");
+                var roll = random(baseAtk, baseAtk + 4);
+
+                // Deal Damage (negative number)
+                modStat("Goblin", "HP", 0 - roll);
+
+                // Check Win
+                if (getStat("Goblin", "HP") <= 0) {
+                    trigger("Enemy Defeated!");
+                    win("You won the battle!");
+
+                    // Loot & Level Up Logic
+                    var exp = 10 * floor;
+                    modStat("Hero", "EXP", exp);
+                    speak("Gained " + exp + " EXP.");
+
+                    if (getStat("Hero", "EXP") >= 50) {
+                        trigger("LEVEL UP!");
+                        modStat("Hero", "MAX_HP", 10);
+                        modStat("Hero", "ATK", 2);
+                        modStat("Hero", "EXP", -50);
+                        speak("You feel stronger!");
+                    }
+
+                    floor = floor + 1;
+                    fighting = false;
+                } else {
+                    // Enemy Attacks Back
+                    print "";
+                    speak("The Goblin strikes back!");
+
+                    var enemyAtk = getStat("Goblin", "ATK");
+                    var enemyRoll = random(enemyAtk, enemyAtk + 2);
+                    var defense = getStat("Hero", "DEF");
+
+                    var netDmg = enemyRoll - defense;
+                    if (netDmg < 0) { netDmg = 0; }
+
+                    modStat("Hero", "HP", 0 - netDmg);
+                    speak("You took " + netDmg + " damage.");
+
+                    if (getStat("Hero", "HP") <= 0) {
+                        lose("You have fallen in battle...");
+                        fighting = false;
+                        playing = false;
+                    }
+                }
+            } else {
+                speak("You ran away safely.");
+                fighting = false;
+            }
+        }
+    }
+
+// --- CHOICE 2: INVENTORY ---
+    else if (selection == "2") {
+        inventory();
+        choice("Use an item?");
+        option("name", "Type item name to use");
+        option("c", "Cancel");
+
+        var itemChoice = input();
+
+        if (itemChoice == "c") {
+            speak("Closing bag.");
+        } else {
+            // "Use" Logic implementation
+            if (itemChoice == "Potion") {
+                // [FIX] Check if use() returns true BEFORE giving stats
+                if (use("Potion")) {
+                    modStat("Hero", "HP", 20);
+                    speak("Healed 20 HP.");
+                }
+            } else if (itemChoice == "Wooden Shield") {
+                // [FIX] Check if use() returns true
+                if (use("Wooden Shield")) {
+                    modStat("Hero", "DEF", 2);
+                    speak("Defense increased by 2 permanently.");
+                }
+            } else {
+                speak("You can't use that.");
+            }
+        }
+    }
+
+    // --- CHOICE 3: STATS ---
+    else if (selection == "3") {
+        checkStats("Hero");
+        continue("Press Enter to return.");
+        input();
+    }
+
+    // --- CHOICE 4: REST ---
+    else if (selection == "4") {
+        speak("You rest by a campfire...");
+        modStat("Hero", "HP", 10);
+        speak("Restored 10 HP.");
+    }
+
+    // --- CHOICE 5: QUIT ---
+    else if (selection == "5") {
+        endgame("You retired from adventuring.");
+        playing = false;
+    }
+
+    else {
+        speak("Invalid command.");
+    }
+}

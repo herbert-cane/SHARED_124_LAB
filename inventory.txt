@@ -1,0 +1,33 @@
+character("The Armory");
+
+// 1. Check empty inventory
+speak("Checking pockets...");
+inventory();
+
+// 2. Find and add items
+spawn("Chest", "Wooden Box");
+add("Rusty Key");
+add("Health Potion");
+
+// 3. Inspect items
+item("Rusty Key", "Old but functional");
+inventory();
+
+// 4. Use an item
+choice("You see a locked door.");
+option(1, "Use Key");
+option(2, "Kick Door");
+
+var action = input();
+
+if (action == "1") {
+    use("Rusty Key");
+    trigger("Door Unlocked");
+
+    // Demonstrate it is gone
+    speak("Checking pockets again...");
+    inventory();
+} else {
+    speak("You hurt your foot.");
+    use("Health Potion");
+}

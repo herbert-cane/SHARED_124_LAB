@@ -1,0 +1,21 @@
+start("The Hero's Journey");
+
+speak("You wake up in a strange land.");
+continue("Moving to next chapter...");
+
+character("The Village");
+say("Elder", "You must save us!");
+
+choice("Will you help?");
+option(1, "Yes");
+option(2, "No");
+
+var ans = input();
+
+if (ans == "1") {
+    speak("You are a true hero.");
+    endgame("Victory!");
+} else {
+    speak("The village falls into darkness.");
+    restart();
+}
